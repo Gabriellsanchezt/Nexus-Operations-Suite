@@ -1,0 +1,36 @@
+# =====================================================================
+# GITIGNORE - NEXUS OPERATIONS SUITE
+# =====================================================================
+
+# Composer dependencies (restaurables con 'composer install')
+/vendor/
+
+# Archivos de entorno y credenciales locales
+.env
+.env.local
+.env.*.local
+
+# Archivos de almacenamiento y temporales
+/storage/*
+!/storage/.gitkeep
+*.log
+cookie.txt
+
+# Bases de datos locales / temporales
+*.sqlite
+*.sqlite3
+*.db
+
+# Artefactos de IDEs y Editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# Archivos del Sistema Operativo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
