@@ -115,7 +115,7 @@
 ## Estructura de Directorios
 
 ```text
-miami-agency-ops/
+Nexus-Operations-Suite/
 ├── app/
 │   ├── Controllers/       # Lógica de aplicación y despacho de vistas
 │   │   ├── ActivityController.php
@@ -152,3 +152,10 @@ miami-agency-ops/
     │   └── js/app.js
     └── index.php
 ```
+
+---
+
+## Licencia
+
+Software propietario y confidencial. Copyright © 2026 Gabriel Sánchez. Todos los derechos reservados.
+Desarrollado exclusivamente para operaciones designadas de clientes privados. Queda estrictamente prohibida su copia, redistribución, modificación o comercialización no autorizada. Consulta el archivo [LICENSE](LICENSE) para más detalles.
