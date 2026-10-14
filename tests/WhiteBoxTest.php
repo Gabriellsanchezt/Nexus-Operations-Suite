@@ -255,20 +255,25 @@ class WhiteBoxTestSuite {
             'miami_zone' => 'Brickell / Financial District'
         ];
 
-        // 1. Enlace Google Calendar con parámetro 'add' para notificar al correo del trabajador y cliente
+        // 1. Enlace Google Calendar configurado como alarma personal del gestor (sin parametro add para no emitir invitaciones directas)
         $gUrl = MeetingModel::buildGoogleCalendarUrl($testMeeting);
         $this->assert(str_starts_with($gUrl, 'https://calendar.google.com/calendar/render?action=TEMPLATE'), 'Enlace de Google Calendar cumple con esquema oficial');
         $this->assert(str_contains($gUrl, '20261120T143000'), 'Fecha y hora de inicio formateadas en estandar ISO (20261120T143000)');
         $this->assert(str_contains($gUrl, '20261120T151500'), 'Calculo de duracion sumado correctamente (45 min -> 151500)');
-        $this->assert(str_contains(urldecode($gUrl), 'add=asistente@miamiagency.com,elena.rostova@sothebysrealty.com'), 'Enlace de Google Calendar incluye parametro add con correo del trabajador y cliente');
+        $this->assert(str_contains(urldecode($gUrl), 'Recordatorio: Valentina Rossi con Brickell Real Estate Group'), 'Titulo formateado como alarma explicita para el telefono del gestor');
+        $this->assert(str_contains(urldecode($gUrl), 'asistente@miamiagency.com'), 'Cuerpo del evento incluye correo de contacto del trabajador');
+        $this->assert(str_contains(urldecode($gUrl), 'elena.rostova@sothebysrealty.com'), 'Cuerpo del evento incluye correo de contacto del cliente');
+        $this->assert(!str_contains($gUrl, 'add='), 'Enlace excluye intencionalmente parametro add para que suene exclusivamente en el telefono del gestor');
 
-        // 2. Generador ICS (RFC 5545) con asistentes invitados
+        // 2. Generador ICS (RFC 5545) con alarmas sonoras nativas a 30m y 15m
         $ics = MeetingModel::generateIcs($testMeeting);
         $this->assert(str_contains($ics, 'BEGIN:VCALENDAR'), 'ICS contiene cabecera BEGIN:VCALENDAR');
         $this->assert(str_contains($ics, 'BEGIN:VEVENT'), 'ICS contiene bloque BEGIN:VEVENT');
-        $this->assert(str_contains($ics, 'SUMMARY:Reunion Ejecutiva de Prueba'), 'ICS contiene SUMMARY correcto');
-        $this->assert(str_contains($ics, 'asistente@miamiagency.com'), 'ICS contiene ATTENDEE con el correo del trabajador asignado');
-        $this->assert(str_contains($ics, 'elena.rostova@sothebysrealty.com'), 'ICS contiene ATTENDEE con el correo del cliente');
+        $this->assert(str_contains($ics, 'SUMMARY:Recordatorio: Valentina Rossi con Brickell Real Estate Group'), 'ICS contiene SUMMARY formateado como recordatorio');
+        $this->assert(str_contains($ics, 'BEGIN:VALARM'), 'ICS incluye bloques de alarma nativa VALARM');
+        $this->assert(str_contains($ics, 'TRIGGER:-PT30M'), 'ICS incluye alarma sonora a los 30 minutos previos');
+        $this->assert(str_contains($ics, 'TRIGGER:-PT15M'), 'ICS incluye alarma sonora a los 15 minutos previos');
+        $this->assert(str_contains($ics, 'asistente@miamiagency.com'), 'ICS contiene en descripcion los datos de contacto del trabajador asignado');
         $this->assert(str_contains($ics, 'END:VCALENDAR'), 'ICS contiene pie END:VCALENDAR');
         $this->assert(str_contains($ics, "\r\n"), 'ICS cumple con separadores de linea CRLF estandar RFC 5545');
 

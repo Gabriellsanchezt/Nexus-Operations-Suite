@@ -10,7 +10,7 @@
     </button>
 </div>
 
-<!-- Banner Explicativo de Sincronización Móvil y Asignación de Correo -->
+<!-- Banner Explicativo de Sincronización Móvil y Recordatorio para Administrador -->
 <div class="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10 border-start border-primary border-4">
     <div class="card-body p-3">
         <div class="d-flex align-items-center gap-3">
@@ -18,9 +18,9 @@
                 <i class="bi bi-phone-vibrate-fill fs-4"></i>
             </div>
             <div>
-                <strong class="text-primary d-block">Sincronización con Correo y Teléfono Móvil por Trabajador</strong>
+                <strong class="text-primary d-block">Alarma y Recordatorio Centralizado en tu Teléfono Móvil</strong>
                 <p class="text-dark small mb-0">
-                    Cada reunión se asigna a un trabajador específico de la agencia. Al presionar <strong>"Google Calendar"</strong>, se abre el evento incluyendo automáticamente el correo asignado del trabajador y del cliente como invitados, enviándoles la notificación y recordatorio directo a su teléfono móvil.
+                    Cada reunión se asigna a un trabajador específico. Al pulsar <strong>"Google Calendar"</strong> o descargar el archivo <strong>.ics</strong>, la alarma se programará directamente en tu teléfono móvil y correo con todos los números telefónicos y datos del trabajador y del cliente, para que puedas llamarles o escribirles y recordarles su cita puntualmente.
                 </p>
             </div>
         </div>
@@ -110,13 +110,13 @@
 
                                 <td class="text-end">
                                     <div class="btn-group shadow-sm">
-                                        <!-- Botón Google Calendar (Abre y notifica en el teléfono móvil del trabajador) -->
-                                        <a href="<?= $m['google_calendar_url'] ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary fw-semibold" title="Sincronizar y enviar notificación al correo/teléfono">
+                                        <!-- Botón Google Calendar (Abre y programa la alarma en el teléfono móvil del gestor) -->
+                                        <a href="<?= $m['google_calendar_url'] ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary fw-semibold" title="Programar alarma en mi teléfono y correo con datos de contacto">
                                             <i class="bi bi-google me-1"></i> Google Calendar
                                         </a>
 
                                         <!-- Descargar archivo iCalendar (.ics) nativo -->
-                                        <a href="<?= url('/agenda/download-ics?id=' . $m['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Descargar archivo .ics con los correos de invitación">
+                                        <a href="<?= url('/agenda/download-ics?id=' . $m['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Descargar archivo .ics con alarmas nativas a 30m y 15m">
                                             <i class="bi bi-download"></i>
                                         </a>
 
@@ -167,9 +167,9 @@
                         </select>
                     </div>
 
-                    <!-- 3. Trabajador Asignado (Correo al que le tiene que llegar la notificación al teléfono móvil) -->
+                    <!-- 3. Trabajador Asignado (Correo al que se asociará la reunión) -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Trabajador Asignado (Correo a Notificar en Móvil) *</label>
+                        <label class="form-label small fw-semibold">Trabajador Asignado (Responsable de la Reunión) *</label>
                         <select name="employee_id" class="form-select" required>
                             <option value="">-- Seleccionar Trabajador Responsable --</option>
                             <?php foreach ($employees as $emp): ?>
@@ -178,7 +178,7 @@
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <small class="text-muted" style="font-size: 0.72rem;">A este correo institucional se enviará la invitación y notificación de Google Calendar para su teléfono móvil.</small>
+                        <small class="text-muted" style="font-size: 0.72rem;">Sus datos de contacto se incorporarán en la alarma de tu calendario para llamarle y recordarle la cita.</small>
                     </div>
 
                     <!-- 4. Fecha y Hora de Inicio -->
@@ -201,7 +201,7 @@
 
                     <div class="p-3 bg-light rounded border small text-muted">
                         <i class="bi bi-phone-fill text-primary me-1"></i>
-                        <strong>Sincronización Automática:</strong> Al guardar la reunión y pulsar <strong>Google Calendar</strong>, el evento se cargará con la cuenta de correo del trabajador y del cliente para que su teléfono celular le notifique con anticipación.
+                        <strong>Alarma Personalizada en tu Móvil:</strong> Al pulsar <strong>Google Calendar</strong>, el evento se abrirá en tu cuenta con la alarma configurada y los teléfonos y correos de contacto del trabajador y cliente en el cuerpo de la cita para llamarlos puntualmente.
                     </div>
                 </div>
                 <div class="modal-footer bg-light">

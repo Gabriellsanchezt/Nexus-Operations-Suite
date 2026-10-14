@@ -68,9 +68,10 @@ class MeetingModel extends Model {
     }
 
     /**
-     * Construir enlace oficial para agregar a Google Calendar con 1 clic
-     * Asigna a los asistentes (trabajador y cliente) mediante el parámetro oficial 'add'
-     * para que Google Calendar envíe la invitación y notificación al teléfono móvil
+     * Construir enlace oficial para agregar recordatorio a Google Calendar con 1 clic
+     * Se sincroniza directamente como alarma y recordatorio personal en el teléfono móvil y correo
+     * del usuario administrador/gestor, cargando todos los datos de contacto del trabajador asignado
+     * y del cliente para que pueda llamarles o escribirles oportunamente para recordarles la cita.
      */
     public static function buildGoogleCalendarUrl(array $meeting): string {
         $startTimestamp = strtotime("{$meeting['meeting_date']} {$meeting['meeting_time']}");
@@ -79,45 +80,53 @@ class MeetingModel extends Model {
         $startDateStr = date('Ymd\THis', $startTimestamp);
         $endDateStr = date('Ymd\THis', $endTimestamp);
 
-        $title = $meeting['title'];
-        if (!empty($meeting['company_name'])) {
-            $title .= ' - ' . $meeting['company_name'];
-        }
+        $workerName = !empty($meeting['employee_name']) ? $meeting['employee_name'] : 'Equipo';
+        $clientName = !empty($meeting['company_name']) ? $meeting['company_name'] : (!empty($meeting['contact_person']) ? $meeting['contact_person'] : 'Cliente');
 
-        $details = $meeting['description'] ?? '';
-        $details .= "\n\nAgendado desde Nexus Operations Suite (Miami Luxury Media).";
-        if (!empty($meeting['employee_name']) && !empty($meeting['employee_email'])) {
-            $details .= "\nTrabajador Asignado: {$meeting['employee_name']} <{$meeting['employee_email']}>";
-        }
-        if (!empty($meeting['company_name'])) {
-            $details .= "\nCliente: {$meeting['company_name']}";
-            if (!empty($meeting['realtor_email'])) {
-                $details .= " <{$meeting['realtor_email']}>";
-            }
-        }
+        // Título explícito de recordatorio para que suene y resalte en el teléfono móvil del gestor
+        $title = "Recordatorio: {$workerName} con {$clientName} - {$meeting['title']}";
 
-        // Correos electrónicos a los que les llegará la invitación y alerta al móvil
-        $attendees = [];
+        // Detalles con información completa de contacto para avisarles de inmediato
+        $details = "RECORDATORIO DE REUNIÓN - MIAMI LUXURY MEDIA\n";
+        $details .= "============================================\n";
+        $details .= "Asunto: " . ($meeting['title'] ?? 'Reunión Operativa') . "\n";
+        $details .= "Fecha y Hora: " . ($meeting['meeting_date'] ?? '') . " a las " . date('h:i A', $startTimestamp) . "\n\n";
+
+        $details .= "TRABAJADOR ASIGNADO A RECORDAR:\n";
+        $details .= "• Nombre: " . ($meeting['employee_name'] ?? 'Colaborador') . "\n";
         if (!empty($meeting['employee_email'])) {
-            $attendees[] = trim($meeting['employee_email']);
+            $details .= "• Correo: " . $meeting['employee_email'] . "\n";
+        }
+        if (!empty($meeting['employee_phone'])) {
+            $details .= "• Teléfono Móvil: " . $meeting['employee_phone'] . "\n";
+        }
+
+        $details .= "\nDATOS DEL CLIENTE (REALTOR):\n";
+        $details .= "• Inmobiliaria: " . ($meeting['company_name'] ?? 'Reunión Interna') . "\n";
+        if (!empty($meeting['contact_person'])) {
+            $details .= "• Contacto: " . $meeting['contact_person'] . "\n";
+        }
+        if (!empty($meeting['realtor_phone'])) {
+            $details .= "• Teléfono Móvil: " . $meeting['realtor_phone'] . "\n";
         }
         if (!empty($meeting['realtor_email'])) {
-            $attendees[] = trim($meeting['realtor_email']);
+            $details .= "• Correo: " . $meeting['realtor_email'] . "\n";
         }
+
+        if (!empty($meeting['description'])) {
+            $details .= "\nTEMAS / DESCRIPCIÓN DE LA REUNIÓN:\n" . $meeting['description'] . "\n";
+        }
+
+        $details .= "\n(Alerta programada para llamar y avisar al trabajador y cliente desde Nexus Operations Suite).";
 
         $params = [
             'action' => 'TEMPLATE',
             'text' => $title,
             'dates' => "{$startDateStr}/{$endDateStr}",
             'details' => $details,
-            'location' => !empty($meeting['company_name']) ? "Reunión con {$meeting['company_name']} - Miami, FL" : "Miami Luxury Media Ops",
+            'location' => !empty($meeting['company_name']) ? "Miami, FL - {$meeting['company_name']}" : "Miami Luxury Media Ops",
             'sprop' => 'website:miami-agency-ops'
         ];
-
-        // Parámetro 'add' de Google Calendar para invitar directamente al trabajador y al cliente
-        if (!empty($attendees)) {
-            $params['add'] = implode(',', array_unique($attendees));
-        }
 
         return 'https://calendar.google.com/calendar/render?' . http_build_query($params);
     }
@@ -133,21 +142,28 @@ class MeetingModel extends Model {
         $dtStart = gmdate('Ymd\THis\Z', $startTimestamp);
         $dtEnd = gmdate('Ymd\THis\Z', $endTimestamp);
         $dtStamp = gmdate('Ymd\THis\Z');
-        $uid = 'meeting-' . $meeting['id'] . '-' . time() . '@miamiagency.com';
+        $uid = 'reminder-meeting-' . $meeting['id'] . '-' . time() . '@miamiagency.com';
 
-        $title = addcslashes($meeting['title'], ",;\\");
-        $desc = addcslashes($meeting['description'] ?? '', ",;\\");
-        $location = addcslashes(!empty($meeting['company_name']) ? "Reunión con {$meeting['company_name']}" : "Miami Luxury Media", ",;\\");
+        $workerName = !empty($meeting['employee_name']) ? $meeting['employee_name'] : 'Colaborador';
+        $clientName = !empty($meeting['company_name']) ? $meeting['company_name'] : 'Cliente';
 
-        $attendeesIcs = "";
+        $title = addcslashes("Recordatorio: {$workerName} con {$clientName} - {$meeting['title']}", ",;\\");
+
+        $descRaw = "Recordatorio para avisar a {$workerName} sobre reunión con {$clientName}.\n";
+        if (!empty($meeting['employee_phone'])) {
+            $descRaw .= "Teléfono Trabajador: {$meeting['employee_phone']}\n";
+        }
         if (!empty($meeting['employee_email'])) {
-            $empName = !empty($meeting['employee_name']) ? addcslashes($meeting['employee_name'], ",;\\") : 'Trabajador Asignado';
-            $attendeesIcs .= "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN={$empName}:mailto:{$meeting['employee_email']}\r\n";
+            $descRaw .= "Correo Trabajador: {$meeting['employee_email']}\n";
         }
-        if (!empty($meeting['realtor_email'])) {
-            $realtorName = !empty($meeting['contact_person']) ? addcslashes($meeting['contact_person'], ",;\\") : 'Cliente';
-            $attendeesIcs .= "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN={$realtorName}:mailto:{$meeting['realtor_email']}\r\n";
+        if (!empty($meeting['realtor_phone'])) {
+            $descRaw .= "Teléfono Cliente: {$meeting['realtor_phone']}\n";
         }
+        if (!empty($meeting['description'])) {
+            $descRaw .= "Temas: {$meeting['description']}\n";
+        }
+        $desc = addcslashes($descRaw, ",;\\");
+        $location = addcslashes(!empty($meeting['company_name']) ? "Reunión con {$meeting['company_name']}" : "Miami Luxury Media", ",;\\");
 
         return "BEGIN:VCALENDAR\r\n" .
                "VERSION:2.0\r\n" .
@@ -162,12 +178,16 @@ class MeetingModel extends Model {
                "SUMMARY:{$title}\r\n" .
                "DESCRIPTION:{$desc}\r\n" .
                "LOCATION:{$location}\r\n" .
-               $attendeesIcs .
                "STATUS:CONFIRMED\r\n" .
+               "BEGIN:VALARM\r\n" .
+               "TRIGGER:-PT30M\r\n" .
+               "ACTION:DISPLAY\r\n" .
+               "DESCRIPTION:Recordatorio: Avisar a {$workerName} sobre reunión con {$clientName}\r\n" .
+               "END:VALARM\r\n" .
                "BEGIN:VALARM\r\n" .
                "TRIGGER:-PT15M\r\n" .
                "ACTION:DISPLAY\r\n" .
-               "DESCRIPTION:Recordatorio de Reunión Miami Agency\r\n" .
+               "DESCRIPTION:Alerta 15 min: Recordar reunión a {$workerName}\r\n" .
                "END:VALARM\r\n" .
                "END:VEVENT\r\n" .
                "END:VCALENDAR\r\n";
