@@ -88,8 +88,9 @@ class MeetingController extends Controller {
         }
 
         if (!$meeting) {
-            http_response_code(404);
-            die("Reunión no encontrada");
+            $this->setFlash('error', 'La reunión solicitada no fue encontrada en la agenda.');
+            $this->redirect('/agenda');
+            return;
         }
 
         $ics = MeetingModel::generateIcs($meeting);

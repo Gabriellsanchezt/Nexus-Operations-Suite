@@ -61,8 +61,9 @@ class ActivityController extends Controller {
         Auth::requireAuth();
 
         if (!Auth::canProduceMedia()) {
-            http_response_code(403);
-            die("Acceso denegado: Este panel está destinado al personal creativo y audiovisual.");
+            $this->setFlash('warning', 'Este panel está destinado exclusivamente al personal creativo y audiovisual.');
+            $this->redirect('/dashboard');
+            return;
         }
 
         $user = Auth::user();
@@ -212,8 +213,9 @@ class ActivityController extends Controller {
         if (!Auth::isJefe()) {
             // Empleado solo puede modificar si está asignada a él y no está culminada
             if ((int)$activity['employee_id'] !== (int)($user['employee_id'] ?? 0)) {
-                http_response_code(403);
-                die("Acceso denegado: Solo el Jefe o el empleado asignado pueden modificar esta tarea.");
+                $this->setFlash('error', 'Acceso denegado: Solo el Jefe o el empleado asignado pueden modificar esta tarea.');
+                $this->redirect('/activities/my-tasks');
+                return;
             }
             if ($activity['current_status'] === 'APROBADA') {
                 $this->setFlash('error', 'Las actividades aprobadas y culminadas no pueden ser modificadas.');

@@ -61,10 +61,28 @@ class ContractController extends Controller {
         }
 
         $file = $_FILES['contract_pdf'];
-        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        
+        // 1. Validar límite de tamaño (Máximo 15 MB)
+        if ($file['size'] > 15 * 1024 * 1024) {
+            $this->setFlash('error', 'El archivo PDF excede el límite máximo de tamaño permitido (15 MB).');
+            $this->redirect('/contracts/final');
+        }
 
+        // 2. Validar extensión de archivo
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if ($ext !== 'pdf') {
-            $this->setFlash('error', 'Únicamente se permiten archivos en formato PDF.');
+            $this->setFlash('error', 'Únicamente se permiten archivos en formato PDF (.pdf).');
+            $this->redirect('/contracts/final');
+        }
+
+        // 3. Validar firma binaria de documento PDF (%PDF-) para prevenir archivos maliciosos
+        $handle = @fopen($file['tmp_name'], 'rb');
+        $headerBytes = $handle ? fread($handle, 5) : '';
+        if ($handle) {
+            fclose($handle);
+        }
+        if ($headerBytes !== '%PDF-') {
+            $this->setFlash('error', 'El archivo suministrado no corresponde a un documento PDF auténtico.');
             $this->redirect('/contracts/final');
         }
 
@@ -105,15 +123,15 @@ class ContractController extends Controller {
         $contract = $this->contractModel->getById($id);
 
         if (!$contract) {
-            http_response_code(404);
-            die("Contrato no encontrado.");
+            $this->setFlash('error', 'El contrato solicitado no existe en el repositorio.');
+            $this->redirect('/contracts/final');
         }
 
         $filePath = BASE_PATH . '/storage/contracts/' . $contract['pdf_filename'];
 
         if (!file_exists($filePath)) {
-            http_response_code(404);
-            die("El archivo físico del contrato no se encuentra en el servidor.");
+            $this->setFlash('error', 'El archivo físico del contrato no se encuentra en el servidor de almacenamiento.');
+            $this->redirect('/contracts/final');
         }
 
         header('Content-Type: application/pdf');

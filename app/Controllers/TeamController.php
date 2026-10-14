@@ -62,7 +62,17 @@ class TeamController extends Controller {
         $specialtyIds = $_POST['specialties'] ?? [];
 
         if (empty($fullName) || empty($email) || empty($password)) {
-            $this->setFlash('error', 'Nombre, correo electrónico y contraseña son obligatorios.');
+            $this->setFlash('error', 'Nombre completo, correo corporativo y contraseña son obligatorios.');
+            $this->redirect('/team?tab=workers');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->setFlash('error', 'El formato del correo electrónico ingresado no es válido.');
+            $this->redirect('/team?tab=workers');
+        }
+
+        if (mb_strlen($password) < 8) {
+            $this->setFlash('error', 'La contraseña debe contener al menos 8 caracteres para garantizar alta seguridad.');
             $this->redirect('/team?tab=workers');
         }
 
@@ -101,6 +111,16 @@ class TeamController extends Controller {
 
         if (!$userId || empty($fullName) || empty($email)) {
             $this->setFlash('error', 'Datos incompletos para actualizar al trabajador.');
+            $this->redirect('/team?tab=workers');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->setFlash('error', 'El formato del correo electrónico ingresado no es válido.');
+            $this->redirect('/team?tab=workers');
+        }
+
+        if (!empty($password) && mb_strlen($password) < 8) {
+            $this->setFlash('error', 'La nueva contraseña debe contener al menos 8 caracteres para garantizar alta seguridad.');
             $this->redirect('/team?tab=workers');
         }
 

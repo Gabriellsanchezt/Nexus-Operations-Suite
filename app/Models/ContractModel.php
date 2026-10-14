@@ -37,6 +37,13 @@ class ContractModel extends Model {
     }
 
     /**
+     * Listar contratos finales para asociar a actividades operativas
+     */
+    public function getFinalApprovedContracts(): array {
+        return $this->getAll();
+    }
+
+    /**
      * Obtener un contrato por ID
      */
     public function getById(int $id): ?array {

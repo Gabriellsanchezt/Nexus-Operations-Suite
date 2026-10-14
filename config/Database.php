@@ -86,7 +86,7 @@ class Database {
     private static function seedInitialData(PDO $pdo): void {
         // 1. Roles
         $pdo->exec("
-            INSERT INTO roles (id, name, description) VALUES
+            INSERT IGNORE INTO roles (id, name, description) VALUES
             (1, 'JEFE', 'Dirección General, supervisión total y control operativo'),
             (2, 'ASISTENTE', 'Asistente Operativo, gestión de agendas, Realtors y soporte'),
             (3, 'ESTRATEGA_MARKETING', 'Estrategia de Marketing, cronograma de emails y campañas'),
@@ -95,7 +95,7 @@ class Database {
 
         // 2. Especialidades Granulares
         $pdo->exec("
-            INSERT INTO specialties (id, code, name, description) VALUES
+            INSERT IGNORE INTO specialties (id, code, name, description) VALUES
             (1, 'EDITOR_VIDEO', 'Editor de Videos', 'Edición de reels, videos de propiedades y walkthroughs'),
             (2, 'EDITOR_CARRUSELES', 'Editor de Carruseles', 'Diseño de carruseles de propiedades e infografías'),
             (3, 'EMAIL_MARKETING', 'Email Marketing', 'Campañas y newsletters para base de datos de Realtors'),
@@ -104,11 +104,11 @@ class Database {
             (6, 'AUTOMATIZADOR', 'Automatizador', 'Automatización de flujos de trabajo, CRM y secuencias');
         ");
 
-        // 3. Usuarios iniciales (password: 'password123' hasheada con bcrypt)
-        $passHash = password_hash('password123', PASSWORD_BCRYPT);
+        // 3. Usuarios iniciales (password: 'password123' hasheada con bcrypt cost 12)
+        $passHash = password_hash('password123', PASSWORD_BCRYPT, ['cost' => 12]);
 
         $stmt = $pdo->prepare("
-            INSERT INTO users (id, email, password_hash, role_id, status) VALUES
+            INSERT IGNORE INTO users (id, email, password_hash, role_id, status) VALUES
             (1, 'jefe@miamiagency.com', ?, 1, 'ACTIVO'),
             (2, 'asistente@miamiagency.com', ?, 2, 'ACTIVO'),
             (3, 'estrategia@miamiagency.com', ?, 3, 'ACTIVO'),

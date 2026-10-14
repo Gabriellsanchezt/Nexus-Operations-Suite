@@ -12,8 +12,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?= url('/assets/css/style.css') ?>">
+    <!-- Custom CSS (con cache-busting dinámico) -->
+    <link rel="stylesheet" href="<?= asset_url('/assets/css/style.css') ?>">
     <script>
         window.APP_BASE_URL = "<?= defined('BASE_URL') ? BASE_URL : '' ?>";
         window.appUrl = function(path) {
@@ -439,8 +439,8 @@ $currentStatusParam = $_GET['status'] ?? '';
 </script>
 <!-- Bootstrap 5.3.3 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Custom Application JS -->
-<script src="<?= url('/assets/js/app.js') ?>"></script>
+<!-- Custom Application JS (con cache-busting dinámico) -->
+<script src="<?= asset_url('/assets/js/app.js') ?>"></script>
 
 <!-- Script para el control del Slider Bar en Laptop, Desktop y Móvil -->
 <script>

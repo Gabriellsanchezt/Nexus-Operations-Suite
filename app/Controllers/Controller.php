@@ -13,6 +13,14 @@ abstract class Controller {
      * Renderizar una vista dentro del layout principal
      */
     protected function render(string $viewPath, array $data = [], string $layout = 'main'): void {
+        // Enviar encabezados anti-caché para forzar siempre la versión más reciente en actualizaciones
+        if (!headers_sent()) {
+            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            header("Cache-Control: post-check=0, pre-check=0", false);
+            header("Pragma: no-cache");
+            header("Expires: Sat, 26 Jul 1997 05:00:00 GMT");
+        }
+
         extract($data);
         $currentUser = Auth::user();
         $systemNotifications = $currentUser ? \App\Services\NotificationService::getUserNotifications($currentUser) : [];
@@ -20,7 +28,14 @@ abstract class Controller {
         // Capturar la vista solicitada
         $viewFile = APP_PATH . '/Views/' . $viewPath . '.php';
         if (!file_exists($viewFile)) {
-            die("Error 404: La vista '{$viewPath}' no fue encontrada en " . htmlspecialchars($viewFile));
+            http_response_code(404);
+            $requestedPath = $viewPath;
+            $error404File = APP_PATH . '/Views/errors/404.php';
+            if (file_exists($error404File)) {
+                require $error404File;
+                exit;
+            }
+            throw new \RuntimeException("La vista '{$viewPath}' no fue encontrada.");
         }
 
         ob_start();
@@ -35,7 +50,8 @@ abstract class Controller {
 
         $layoutFile = APP_PATH . '/Views/layouts/' . $layout . '.php';
         if (!file_exists($layoutFile)) {
-            die("Error: El layout '{$layout}' no existe.");
+            http_response_code(500);
+            throw new \RuntimeException("El layout de plantilla '{$layout}' no existe.");
         }
 
         require $layoutFile;
@@ -46,7 +62,11 @@ abstract class Controller {
      */
     protected function json(array $data, int $statusCode = 200): void {
         http_response_code($statusCode);
-        header('Content-Type: application/json; charset=utf-8');
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+            header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+            header("Pragma: no-cache");
+        }
         echo json_encode($data);
         exit;
     }

@@ -46,6 +46,18 @@ if (!function_exists('url')) {
     }
 }
 
+/**
+ * Helper global para generar URLs de assets con cache-busting dinámico basado en filemtime
+ */
+if (!function_exists('asset_url')) {
+    function asset_url(string $path = ''): string {
+        $cleanPath = '/' . ltrim($path, '/');
+        $fullPath = PUBLIC_PATH . $cleanPath;
+        $version = file_exists($fullPath) ? filemtime($fullPath) : time();
+        return url($cleanPath) . '?v=' . $version;
+    }
+}
+
 // Configuración de Base de Datos (MySQL / MariaDB en XAMPP)
 define('DB_DRIVER', getenv('DB_DRIVER') ?: 'mysql');
 define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
@@ -70,21 +82,18 @@ define('MIAMI_ZONES', [
     'Edgewater'
 ]);
 
-// Paquetes Audiovisuales estándar para Realtors
+// Paquetes Operativos estándar para Realtors (Producción & Marketing Audiovisual)
 define('REALTOR_PACKAGES', [
     'LUXURY_VIDEO_REELS' => [
         'name' => 'Paquete Reels & Luxury Video Walkthrough',
-        'default_fee' => 3500.00,
         'deliverables' => '4 Reels cinematográficos 4K con dron + 1 Walkthrough de 2 minutos'
     ],
     'FULL_BRANDING_SOCIAL' => [
         'name' => 'Branding Integral & Redes Mensual',
-        'default_fee' => 5200.00,
         'deliverables' => '8 Reels + 12 Carruseles gráficos + Gestión de Comunidad semanal'
     ],
     'VIP_LISTING_LAUNCH' => [
         'name' => 'Lanzamiento Exclusivo de Propiedad VIP',
-        'default_fee' => 7800.00,
-        'deliverables' => 'Producción completa con 2 cámaras, dron FPV, pauta digital y edición prioritaria 48h'
+        'deliverables' => 'Producción completa con 2 cámaras, dron FPV y edición prioritaria 48h'
     ]
 ]);

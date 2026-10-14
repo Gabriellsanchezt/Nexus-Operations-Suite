@@ -363,15 +363,27 @@ try {
 
         default:
             http_response_code(404);
-            echo "<h1>404 Not Found</h1><p>La ruta solicitada '{$requestUri}' no existe.</p><a href='" . url('/dashboard') . "'>Volver al inicio</a>";
+            $requestedPath = $requestUri;
+            $error404Path = APP_PATH . '/Views/errors/404.php';
+            if (file_exists($error404Path)) {
+                require $error404Path;
+            } else {
+                echo "<h1>404 Not Found</h1><p>La ruta solicitada no fue encontrada.</p>";
+            }
             break;
     }
 } catch (\Throwable $e) {
     http_response_code(500);
-    echo "<h1>Error 500 del Sistema</h1>";
-    echo "<p><strong>Mensaje:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
-    echo "<p><strong>Archivo:</strong> " . htmlspecialchars($e->getFile()) . " en línea " . $e->getLine() . "</p>";
-    if (defined('APP_ENV') && APP_ENV === 'development') {
-        echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+    error_log("[NEXUS ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
+    $errorMessage = $e->getMessage();
+    $errorFile = $e->getFile();
+    $errorLine = $e->getLine();
+    $errorTrace = $e->getTraceAsString();
+    $error500Path = APP_PATH . '/Views/errors/500.php';
+    if (file_exists($error500Path)) {
+        require $error500Path;
+    } else {
+        echo "<h1>500 Internal Server Error</h1>";
+        echo "<p>" . htmlspecialchars($errorMessage) . "</p>";
     }
 }

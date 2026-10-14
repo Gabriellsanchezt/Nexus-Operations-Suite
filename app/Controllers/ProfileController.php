@@ -80,8 +80,8 @@ class ProfileController extends Controller {
                 return;
             }
 
-            if (strlen($newPassword) < 6) {
-                $this->setFlash('error', 'La nueva contraseña debe tener al menos 6 caracteres.');
+            if (mb_strlen($newPassword) < 8) {
+                $this->setFlash('error', 'La nueva contraseña debe tener al menos 8 caracteres para garantizar alta seguridad.');
                 $this->redirect('/profile');
                 return;
             }

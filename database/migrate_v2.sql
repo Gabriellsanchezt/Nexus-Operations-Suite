@@ -92,10 +92,10 @@ CREATE TABLE IF NOT EXISTS meetings (
 -- Hash estándar de PHP password_hash('password123', PASSWORD_BCRYPT)
 -- $2y$10$eA0y5iUoY0b16R/i1n3q6.f9Q1wG4sWwZ/Oq0k5iYkH6aN1r9Yd1W (o similar)
 INSERT INTO users (id, email, password_hash, role_id, status) VALUES
-(1, 'jefe@miamiagency.com', '$2y$10$8szthNrRQe7Za1qhuWWETenrPz4INdVyxV.Dvsky9bZMQOCFZM5.O', 1, 'ACTIVO'),
-(2, 'asistente@miamiagency.com', '$2y$10$8szthNrRQe7Za1qhuWWETenrPz4INdVyxV.Dvsky9bZMQOCFZM5.O', 2, 'ACTIVO'),
-(3, 'estrategia@miamiagency.com', '$2y$10$8szthNrRQe7Za1qhuWWETenrPz4INdVyxV.Dvsky9bZMQOCFZM5.O', 3, 'ACTIVO'),
-(4, 'social@miamiagency.com', '$2y$10$8szthNrRQe7Za1qhuWWETenrPz4INdVyxV.Dvsky9bZMQOCFZM5.O', 4, 'ACTIVO');
+(1, 'jefe@miamiagency.com', '$2y$12$upMYRqJzcalc3mmKsATmDOkBKVpnBfNBm/uwjtvnK7I7sw2kiGumu', 1, 'ACTIVO'),
+(2, 'asistente@miamiagency.com', '$2y$12$upMYRqJzcalc3mmKsATmDOkBKVpnBfNBm/uwjtvnK7I7sw2kiGumu', 2, 'ACTIVO'),
+(3, 'estrategia@miamiagency.com', '$2y$12$upMYRqJzcalc3mmKsATmDOkBKVpnBfNBm/uwjtvnK7I7sw2kiGumu', 3, 'ACTIVO'),
+(4, 'social@miamiagency.com', '$2y$12$upMYRqJzcalc3mmKsATmDOkBKVpnBfNBm/uwjtvnK7I7sw2kiGumu', 4, 'ACTIVO');
 
 INSERT INTO employees (id, user_id, full_name, phone, hire_date) VALUES
 (1, 1, 'Carlos Mendoza', '+1 (305) 555-0101', '2024-01-15'),

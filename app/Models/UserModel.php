@@ -75,8 +75,8 @@ class UserModel extends Model {
     public function createTeamMember(array $data, array $specialtyIds): int {
         $this->beginTransaction();
         try {
-            // 1. Crear usuario
-            $passHash = password_hash($data['password'], PASSWORD_BCRYPT);
+            // 1. Crear usuario con hash BCRYPT reforzado (costo 12)
+            $passHash = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
             $stmtUser = $this->db->prepare("
                 INSERT INTO users (email, password_hash, role_id, status)
                 VALUES (?, ?, ?, 'ACTIVO')
@@ -155,9 +155,9 @@ class UserModel extends Model {
 
         $this->beginTransaction();
         try {
-            // 1. Actualizar users (email, role_id y contraseña opcional)
+            // 1. Actualizar users (email, role_id y contraseña opcional con costo 12)
             if (!empty($data['password'])) {
-                $passHash = password_hash($data['password'], PASSWORD_BCRYPT);
+                $passHash = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
                 $stmtUser = $this->db->prepare("
                     UPDATE users
                     SET email = ?, password_hash = ?, role_id = ?
@@ -440,9 +440,9 @@ class UserModel extends Model {
 
         $this->beginTransaction();
         try {
-            // 1. Actualizar usuario (email y contraseña opcional)
+            // 1. Actualizar usuario (email y contraseña opcional con costo 12)
             if ($newPassword !== null && trim($newPassword) !== '') {
-                $passHash = password_hash(trim($newPassword), PASSWORD_BCRYPT);
+                $passHash = password_hash(trim($newPassword), PASSWORD_BCRYPT, ['cost' => 12]);
                 $stmtUser = $this->db->prepare("
                     UPDATE users
                     SET email = ?, password_hash = ?
