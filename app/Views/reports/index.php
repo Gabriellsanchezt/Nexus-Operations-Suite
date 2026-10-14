@@ -1,200 +1,170 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-graph-up-arrow text-primary me-2"></i>Reportes Ejecutivos de Dirección</h2>
-        <p class="text-muted mb-0">Métricas consolidadas de producción audiovisual, acuerdos formalizados y flujo de actividades</p>
+        <h2 class="fw-bold mb-1">
+            <i class="bi bi-graph-up-arrow text-primary me-2"></i>Reportes de Rendimiento & Productividad
+        </h2>
+        <p class="text-muted mb-0">Métricas operativas consolidadas exclusivamente para períodos de 15 y 30 días</p>
     </div>
-    <div class="d-flex gap-2">
-        <a href="/reports/export-excel?period=<?= $currentPeriod ?>" class="btn btn-outline-success fw-semibold">
-            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar a Excel (CSV)
-        </a>
-        <button onclick="window.print()" class="btn btn-dark fw-semibold">
-            <i class="bi bi-printer me-1"></i> Imprimir / Generar PDF
-        </button>
-    </div>
-</div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <!-- Filtro Exclusivo de 15 / 30 Días -->
+        <div class="btn-group shadow-sm" role="group">
+            <a href="<?= url('/reports?days=15') ?>" class="btn btn-sm <?= ($currentDays === 15) ? 'btn-primary fw-bold' : 'btn-outline-secondary' ?>">
+                <i class="bi bi-calendar2-range me-1"></i> Últimos 15 Días
+            </a>
+            <a href="<?= url('/reports?days=30') ?>" class="btn btn-sm <?= ($currentDays === 30) ? 'btn-primary fw-bold' : 'btn-outline-secondary' ?>">
+                <i class="bi bi-calendar2-month me-1"></i> Últimos 30 Días
+            </a>
+        </div>
 
-<!-- Selector de Períodos -->
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body p-2 d-flex gap-2">
-        <a href="/reports?period=semanal" class="btn <?= ($currentPeriod === 'semanal') ? 'btn-primary' : 'btn-light' ?> flex-fill fw-semibold">
-            <i class="bi bi-calendar-week me-1"></i> Período Semanal (Últimos 7 días)
-        </a>
-        <a href="/reports?period=quincenal" class="btn <?= ($currentPeriod === 'quincenal') ? 'btn-primary' : 'btn-light' ?> flex-fill fw-semibold">
-            <i class="bi bi-calendar2-range me-1"></i> Período Quincenal (Últimos 15 días)
-        </a>
-        <a href="/reports?period=mensual" class="btn <?= ($currentPeriod === 'mensual') ? 'btn-primary' : 'btn-light' ?> flex-fill fw-semibold">
-            <i class="bi bi-calendar-month me-1"></i> Período Mensual (Últimos 30 días)
+        <a href="<?= url('/reports/export-excel?days=' . $currentDays) ?>" class="btn btn-sm btn-outline-success fw-semibold shadow-sm">
+            <i class="bi bi-file-earmark-excel me-1"></i> Exportar CSV
         </a>
     </div>
 </div>
 
-<!-- Resumen Operativo de Actividades y Acuerdos de Trabajo -->
+<!-- 1. Tarjetas de Rendimiento Operativo General -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <!-- Tasa de Cumplimiento -->
+    <div class="col-12 col-sm-6 col-xl-3">
         <div class="card exec-kpi-card kpi-sage h-100">
             <div class="card-body p-3">
-                <span class="text-muted small fw-semibold text-uppercase">Tareas Culminadas & Aprobadas</span>
+                <span class="text-muted small fw-semibold text-uppercase">Tasa de Efectividad</span>
                 <div class="d-flex align-items-center justify-content-between mt-2">
-                    <h2 class="fw-bold mb-0 text-success"><?= $report['operations']['completed_tasks'] ?></h2>
+                    <h3 class="fw-bold mb-0 text-success"><?= $report['performance']['completion_rate'] ?>%</h3>
                     <div class="exec-icon-box exec-icon-sage">
-                        <i class="bi bi-patch-check-fill"></i>
+                        <i class="bi bi-pie-chart-fill"></i>
                     </div>
                 </div>
-                <small class="text-muted mt-2 d-block"><i class="bi bi-check2-all text-success"></i> Entregables validados por Dirección</small>
+                <small class="text-muted mt-2 d-block">
+                    <?= $report['performance']['completed_tasks'] ?> de <?= $report['performance']['total_tasks'] ?> tareas culminadas
+                </small>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+
+    <!-- Tareas Culminadas -->
+    <div class="col-12 col-sm-6 col-xl-3">
         <div class="card exec-kpi-card kpi-navy h-100">
             <div class="card-body p-3">
-                <span class="text-muted small fw-semibold text-uppercase">Contratos Formalizados</span>
+                <span class="text-muted small fw-semibold text-uppercase">Tareas Culminadas</span>
                 <div class="d-flex align-items-center justify-content-between mt-2">
-                    <h2 class="fw-bold mb-0 text-primary"><?= $report['financial']['total_approved_contracts'] ?></h2>
+                    <h3 class="fw-bold mb-0 text-primary"><?= $report['performance']['completed_tasks'] ?></h3>
                     <div class="exec-icon-box exec-icon-navy">
-                        <i class="bi bi-file-earmark-lock2-fill"></i>
+                        <i class="bi bi-check2-circle"></i>
                     </div>
                 </div>
-                <small class="text-muted mt-2 d-block">Expedientes activos en Repositorio Oficial</small>
+                <small class="text-muted mt-2 d-block">Aprobadas por Dirección</small>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+
+    <!-- Tareas en Producción / Revisión -->
+    <div class="col-12 col-sm-6 col-xl-3">
         <div class="card exec-kpi-card kpi-steel h-100">
             <div class="card-body p-3">
-                <span class="text-muted small fw-semibold text-uppercase">Tareas en Proceso Activo</span>
+                <span class="text-muted small fw-semibold text-uppercase">En Producción Activa</span>
                 <div class="d-flex align-items-center justify-content-between mt-2">
-                    <h2 class="fw-bold mb-0 text-dark"><?= $report['operations']['in_progress_tasks'] + $report['operations']['in_review_tasks'] ?></h2>
+                    <h3 class="fw-bold mb-0 text-info">
+                        <?= $report['performance']['in_progress_tasks'] + $report['performance']['in_review_tasks'] ?>
+                    </h3>
                     <div class="exec-icon-box exec-icon-steel">
-                        <i class="bi bi-camera-reels"></i>
+                        <i class="bi bi-arrow-repeat"></i>
                     </div>
                 </div>
-                <small class="text-muted mt-2 d-block">En rodaje, edición y control de calidad</small>
+                <small class="text-muted mt-2 d-block">
+                    <?= $report['performance']['in_progress_tasks'] ?> en curso, <?= $report['performance']['in_review_tasks'] ?> por revisar
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entregables Subidos -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card exec-kpi-card kpi-bronze h-100">
+            <div class="card-body p-3">
+                <span class="text-muted small fw-semibold text-uppercase">Entregables Subidos</span>
+                <div class="d-flex align-items-center justify-content-between mt-2">
+                    <h3 class="fw-bold mb-0 text-warning"><?= $report['performance']['total_deliverables'] ?></h3>
+                    <div class="exec-icon-box exec-icon-bronze">
+                        <i class="bi bi-link-45deg"></i>
+                    </div>
+                </div>
+                <small class="text-muted mt-2 d-block">Piezas multimedia entregadas</small>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row g-4 mb-4">
-    <!-- Cobertura y Contratos por Zona de Miami -->
-    <div class="col-12 col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white py-3 border-bottom">
-                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Cobertura y Acuerdos por Zona de Miami</h5>
-            </div>
-            <div class="card-body p-0">
-                <?php if (empty($report['financial']['by_zone'])): ?>
-                    <div class="text-center py-4 text-muted">Sin acuerdos registrados en este período.</div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light small text-uppercase">
-                                <tr>
-                                    <th>Zona de Miami</th>
-                                    <th>Contratos Formalizados</th>
-                                    <th class="text-end">Cobertura Operativa</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($report['financial']['by_zone'] as $z): ?>
-                                    <tr>
-                                        <td><strong><?= htmlspecialchars($z['miami_zone']) ?></strong></td>
-                                        <td><span class="badge bg-secondary"><?= $z['contract_count'] ?> <?= ($z['contract_count'] == 1) ? 'Acuerdo' : 'Acuerdos' ?></span></td>
-                                        <td class="text-end">
-                                            <span class="badge bg-success-subtle text-success border border-success-subtle">
-                                                <i class="bi bi-shield-check me-1"></i>Cobertura Activa
-                                            </span>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resumen del Flujo Audiovisual -->
-    <div class="col-12 col-lg-6">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white py-3 border-bottom">
-                <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-camera-reels-fill text-primary me-2"></i>Rendimiento del Flujo Audiovisual</h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="row text-center g-3 mb-3">
-                    <div class="col-4">
-                        <div class="p-3 bg-light rounded border">
-                            <div class="small text-muted text-uppercase">Total Tareas</div>
-                            <h3 class="fw-bold mb-0 text-dark"><?= $report['operations']['total_tasks'] ?></h3>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="p-3 bg-success-subtle rounded border border-success-subtle">
-                            <div class="small text-success text-uppercase">Aprobadas</div>
-                            <h3 class="fw-bold mb-0 text-success"><?= $report['operations']['completed_tasks'] ?></h3>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="p-3 bg-danger-subtle rounded border border-danger-subtle">
-                            <div class="small text-danger text-uppercase">En Corrección</div>
-                            <h3 class="fw-bold mb-0 text-danger"><?= $report['operations']['correction_tasks'] ?></h3>
-                        </div>
-                    </div>
-                </div>
-
-                <h6 class="fw-bold small text-muted text-uppercase mb-2">Desglose por Tipo de Producción:</h6>
-                <div class="list-group list-group-flush small">
-                    <?php foreach ($report['operations']['by_type'] as $t): ?>
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            <span><i class="bi bi-circle-fill text-primary me-2" style="font-size: 0.5rem;"></i><?= htmlspecialchars($t['activity_type']) ?></span>
-                            <div>
-                                <span class="badge bg-light text-dark border"><?= $t['total_count'] ?> totales</span>
-                                <span class="badge bg-success"><?= $t['approved_count'] ?> culminadas</span>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Desempeño del Personal Creativo -->
+<!-- 2. Tabla de Productividad por Empleado -->
 <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white py-3 border-bottom">
-        <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-people-fill text-dark me-2"></i>Productividad por Especialista Audiovisual</h5>
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <div>
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-people-fill text-primary me-2"></i>Productividad por Empleado (Últimos <?= $currentDays ?> Días)
+            </h5>
+            <span class="small text-muted">Desglose de tareas completadas, entregables presentados y porcentaje de cumplimiento individual</span>
+        </div>
+        <span class="badge bg-light text-dark border">
+            Desde: <?= date('d/m/Y', strtotime($report['since_date'])) ?>
+        </span>
     </div>
     <div class="card-body p-0">
-        <?php if (empty($report['operations']['staff'])): ?>
-            <div class="text-center py-4 text-muted">No hay registros de tareas asignadas para el personal en este rango.</div>
+        <?php if (empty($report['staff_productivity'])): ?>
+            <div class="text-center py-5 text-muted">
+                No hay registros de productividad en este período.
+            </div>
         <?php else: ?>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light small text-uppercase">
                         <tr>
-                            <th>Especialista</th>
+                            <th>Especialista / Empleado</th>
                             <th>Tareas Asignadas</th>
-                            <th>Entregas Aprobadas</th>
-                            <th>Solicitudes de Corrección</th>
-                            <th class="text-end">Tasa de Efectividad</th>
+                            <th>Tareas Culminadas</th>
+                            <th>En Proceso</th>
+                            <th>Por Revisar</th>
+                            <th>Entregables Subidos</th>
+                            <th style="width: 220px;">Tasa de Cumplimiento</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($report['operations']['staff'] as $st): ?>
-                            <?php
-                                $rate = $st['assigned_tasks'] > 0 ? round(($st['completed_tasks'] / $st['assigned_tasks']) * 100) : 0;
-                            ?>
+                        <?php foreach ($report['staff_productivity'] as $st): ?>
                             <tr>
-                                <td><strong><?= htmlspecialchars($st['full_name']) ?></strong></td>
-                                <td><?= $st['assigned_tasks'] ?></td>
-                                <td><span class="badge bg-success"><?= $st['completed_tasks'] ?></span></td>
-                                <td><span class="badge bg-danger"><?= $st['rework_tasks'] ?></span></td>
-                                <td class="text-end">
-                                    <div class="d-inline-flex align-items-center gap-2">
-                                        <div class="progress" style="width: 100px; height: 8px;">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: <?= $rate ?>%;"></div>
+                                <td>
+                                    <div class="fw-bold text-dark"><?= htmlspecialchars($st['full_name']) ?></div>
+                                    <small class="text-muted">ID: #<?= (int)$st['employee_id'] ?></small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border font-monospace">
+                                        <?= (int)$st['assigned_tasks'] ?> tareas
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success font-monospace">
+                                        <i class="bi bi-check-lg me-1"></i><?= (int)$st['completed_tasks'] ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info text-dark font-monospace">
+                                        <?= (int)$st['in_progress_tasks'] ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning text-dark font-monospace">
+                                        <?= (int)$st['in_review_tasks'] ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark font-monospace">
+                                        <i class="bi bi-link-45deg me-1"></i><?= (int)$st['deliverables_submitted'] ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="progress flex-grow-1" style="height: 8px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: <?= $st['completion_rate'] ?>%"></div>
                                         </div>
-                                        <span class="fw-bold small"><?= $rate ?>%</span>
+                                        <span class="small fw-bold text-dark font-monospace"><?= $st['completion_rate'] ?>%</span>
                                     </div>
                                 </td>
                             </tr>

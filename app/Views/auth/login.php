@@ -89,26 +89,26 @@
             <div class="d-flex flex-column gap-2">
                 <button type="button" class="btn btn-sm btn-outline-danger text-start d-flex justify-content-between align-items-center"
                         onclick="fillCreds('jefe@miamiagency.com', 'password123')">
-                    <span><strong>1. Jefe (Admin):</strong> Carlos Mendoza</span>
-                    <span class="badge bg-danger">JEFE_ADMIN</span>
+                    <span><strong>1. Jefe (Dirección):</strong> Carlos Mendoza</span>
+                    <span class="badge bg-danger">JEFE</span>
                 </button>
 
                 <button type="button" class="btn btn-sm btn-outline-primary text-start d-flex justify-content-between align-items-center"
-                        onclick="fillCreds('contratos@miamiagency.com', 'password123')">
-                    <span><strong>2. Empleado:</strong> Valentina Rossi</span>
-                    <span class="badge bg-secondary">EMPLEADO</span>
+                        onclick="fillCreds('asistente@miamiagency.com', 'password123')">
+                    <span><strong>2. Asistente:</strong> Valentina Rossi</span>
+                    <span class="badge bg-primary">ASISTENTE</span>
                 </button>
 
                 <button type="button" class="btn btn-sm btn-outline-success text-start d-flex justify-content-between align-items-center"
-                        onclick="fillCreds('editor@miamiagency.com', 'password123')">
-                    <span><strong>3. Empleado:</strong> Mateo Silva</span>
-                    <span class="badge bg-secondary">EMPLEADO</span>
+                        onclick="fillCreds('estrategia@miamiagency.com', 'password123')">
+                    <span><strong>3. Estrategia de Marketing:</strong> Sofía Herrera</span>
+                    <span class="badge bg-success">ESTRATEGIA</span>
                 </button>
 
-                <button type="button" class="btn btn-sm btn-outline-dark text-start d-flex justify-content-between align-items-center"
-                        onclick="fillCreds('creativo@miamiagency.com', 'password123')">
-                    <span><strong>4. Empleado:</strong> Camila Duarte</span>
-                    <span class="badge bg-secondary">EMPLEADO</span>
+                <button type="button" class="btn btn-sm btn-outline-info text-start d-flex justify-content-between align-items-center"
+                        onclick="fillCreds('social@miamiagency.com', 'password123')">
+                    <span><strong>4. Social Manager:</strong> Mateo Silva</span>
+                    <span class="badge bg-info text-dark">SOCIAL MGR</span>
                 </button>
             </div>
         </div>

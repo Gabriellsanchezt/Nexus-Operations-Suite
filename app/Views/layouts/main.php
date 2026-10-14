@@ -71,13 +71,17 @@ $currentStatusParam = $_GET['status'] ?? '';
                 </div>
                 <div class="overflow-hidden">
                     <div class="fw-bold text-white small text-truncate"><?= htmlspecialchars($currentUser['full_name'] ?? 'Usuario') ?></div>
-                    <div class="d-flex align-items-center gap-1 mt-1">
-                        <?php if (($currentUser['role'] ?? '') === 'JEFE_ADMIN'): ?>
-                            <span class="badge bg-danger text-uppercase" style="font-size: 0.65rem;">JEFE ADMIN</span>
-                        <?php else: ?>
-                            <span class="badge bg-info text-dark text-uppercase" style="font-size: 0.65rem;">EMPLEADO</span>
-                        <?php endif; ?>
-                    </div>
+                        <?php 
+                        $userRole = $currentUser['role'] ?? '';
+                        $roleBadgeClass = match($userRole) {
+                            'JEFE', 'JEFE_ADMIN' => 'bg-danger text-white',
+                            'ASISTENTE' => 'bg-primary text-white',
+                            'ESTRATEGA_MARKETING' => 'bg-success text-white',
+                            'SOCIAL_MANAGER' => 'bg-info text-dark',
+                            default => 'bg-secondary text-white'
+                        };
+                        ?>
+                        <span class="badge <?= $roleBadgeClass ?> text-uppercase" style="font-size: 0.65rem;"><?= htmlspecialchars(\Config\Auth::getRoleLabel($userRole)) ?></span>
                 </div>
             </div>
             <?php if (!empty($currentUser['specialties'])): ?>
@@ -91,7 +95,7 @@ $currentStatusParam = $_GET['status'] ?? '';
 
         <!-- 3. Enlaces de Navegación del Sidebar -->
         <div class="sidebar-nav-container">
-            <!-- Sección: Panel General -->
+            <!-- 1. Panel General -->
             <div class="sidebar-heading">Panel Principal</div>
             <a href="<?= url('/dashboard') ?>" class="sidebar-link <?= ($currentRoute === '/dashboard' || $currentRoute === '/') ? 'active' : '' ?>">
                 <div class="sidebar-link-content">
@@ -100,37 +104,9 @@ $currentStatusParam = $_GET['status'] ?? '';
                 </div>
             </a>
 
+            <!-- 2. Producción Creativa & Audiovisual -->
+            <div class="sidebar-heading">Producción Audiovisual</div>
             <?php if (\Config\Auth::isJefe()): ?>
-                <!-- Sección: Dirección & Legal (Solo Jefe) -->
-                <div class="sidebar-heading">Dirección & Contratos</div>
-                <a href="<?= url('/contracts/final') ?>" class="sidebar-link <?= ($currentRoute === '/contracts/final') ? 'active' : '' ?>">
-                    <div class="sidebar-link-content">
-                        <i class="bi bi-archive-fill sidebar-link-icon"></i>
-                        <span>Contratos Finales</span>
-                    </div>
-                    <span class="badge sidebar-pill-badge">Activos</span>
-                </a>
-                <a href="<?= url('/contracts/approvals') ?>" class="sidebar-link <?= ($currentRoute === '/contracts/approvals') ? 'active' : '' ?>">
-                    <div class="sidebar-link-content">
-                        <i class="bi bi-file-earmark-check-fill sidebar-link-icon"></i>
-                        <span>Aprobaciones</span>
-                    </div>
-                </a>
-                <a href="<?= url('/contracts/create') ?>" class="sidebar-link <?= ($currentRoute === '/contracts/create') ? 'active' : '' ?>">
-                    <div class="sidebar-link-content">
-                        <i class="bi bi-file-earmark-plus-fill sidebar-link-icon"></i>
-                        <span>Generador Contratos</span>
-                    </div>
-                </a>
-                <a href="<?= url('/contracts/activities') ?>" class="sidebar-link <?= ($currentRoute === '/contracts/activities') ? 'active' : '' ?>">
-                    <div class="sidebar-link-content">
-                        <i class="bi bi-clock-history sidebar-link-icon"></i>
-                        <span>Actividades de Contratos</span>
-                    </div>
-                </a>
-
-                <!-- Sección: Operaciones Audiovisuales -->
-                <div class="sidebar-heading">Producción Audiovisual</div>
                 <a href="<?= url('/activities') ?>" class="sidebar-link <?= ($currentRoute === '/activities' && empty($currentStatusParam)) ? 'active' : '' ?>">
                     <div class="sidebar-link-content">
                         <i class="bi bi-kanban sidebar-link-icon"></i>
@@ -144,65 +120,82 @@ $currentStatusParam = $_GET['status'] ?? '';
                     </div>
                     <span class="badge sidebar-pill-badge">Aprobadas</span>
                 </a>
-
-                <!-- Sección: Comercial & Equipo -->
-                <div class="sidebar-heading">Comercial & Equipo</div>
-                <a href="<?= url('/realtors') ?>" class="sidebar-link <?= ($currentRoute === '/realtors') ? 'active' : '' ?>">
+            <?php else: ?>
+                <a href="<?= url('/activities/my-tasks') ?>" class="sidebar-link <?= ($currentRoute === '/activities/my-tasks' && empty($currentStatusParam)) ? 'active' : '' ?>">
                     <div class="sidebar-link-content">
-                        <i class="bi bi-building sidebar-link-icon"></i>
-                        <span>+ Realtors Miami</span>
+                        <i class="bi bi-play-circle-fill sidebar-link-icon"></i>
+                        <span>Mis Tareas</span>
                     </div>
                 </a>
+                <a href="<?= url('/activities/my-tasks?status=APROBADA') ?>" class="sidebar-link <?= ($currentRoute === '/activities/my-tasks' && $currentStatusParam === 'APROBADA') ? 'active' : '' ?>">
+                    <div class="sidebar-link-content">
+                        <i class="bi bi-patch-check-fill sidebar-link-icon"></i>
+                        <span>Mis Tareas Culminadas</span>
+                    </div>
+                    <span class="badge sidebar-pill-badge">Aprobadas</span>
+                </a>
+                <a href="<?= url('/activities') ?>" class="sidebar-link <?= ($currentRoute === '/activities' && empty($currentStatusParam)) ? 'active' : '' ?>">
+                    <div class="sidebar-link-content">
+                        <i class="bi bi-kanban sidebar-link-icon"></i>
+                        <span>Tablero General</span>
+                    </div>
+                </a>
+            <?php endif; ?>
+
+            <!-- 3. Marketing & Agenda -->
+            <div class="sidebar-heading">Marketing & Agenda</div>
+            <a href="<?= url('/email-marketing') ?>" class="sidebar-link <?= ($currentRoute === '/email-marketing') ? 'active' : '' ?>">
+                <div class="sidebar-link-content">
+                    <i class="bi bi-envelope-paper-fill sidebar-link-icon"></i>
+                    <span>Email Marketing</span>
+                </div>
+                <span class="badge sidebar-pill-badge">Cronograma</span>
+            </a>
+            <a href="<?= url('/agenda') ?>" class="sidebar-link <?= ($currentRoute === '/agenda' || $currentRoute === '/meetings') ? 'active' : '' ?>">
+                <div class="sidebar-link-content">
+                    <i class="bi bi-calendar-check-fill sidebar-link-icon"></i>
+                    <span>Agenda de Reuniones</span>
+                </div>
+                <span class="badge sidebar-pill-badge">Google Sync</span>
+            </a>
+
+            <!-- 4. Directorio & Equipo -->
+            <div class="sidebar-heading">Directorio & Equipo</div>
+            <a href="<?= url('/realtors') ?>" class="sidebar-link <?= ($currentRoute === '/realtors') ? 'active' : '' ?>">
+                <div class="sidebar-link-content">
+                    <i class="bi bi-building sidebar-link-icon"></i>
+                    <span>Realtors Miami</span>
+                </div>
+            </a>
+            <?php if (\Config\Auth::isJefe()): ?>
                 <a href="<?= url('/team') ?>" class="sidebar-link <?= ($currentRoute === '/team') ? 'active' : '' ?>">
                     <div class="sidebar-link-content">
                         <i class="bi bi-people sidebar-link-icon"></i>
-                        <span>+ Equipo & Roles</span>
+                        <span>Equipo & Roles</span>
                     </div>
                 </a>
+            <?php endif; ?>
 
-                <!-- Sección: Analítica -->
-                <div class="sidebar-heading">Analítica & Reportes</div>
+            <!-- 5. Contratos Finales (Al final antes de Reportes) -->
+            <div class="sidebar-heading">Documentación</div>
+            <a href="<?= url('/contracts/final') ?>" class="sidebar-link <?= ($currentRoute === '/contracts/final') ? 'active' : '' ?>">
+                <div class="sidebar-link-content">
+                    <i class="bi bi-file-earmark-pdf-fill sidebar-link-icon"></i>
+                    <span>Contratos Finales</span>
+                </div>
+                <span class="badge sidebar-pill-badge bg-danger text-white">PDF</span>
+            </a>
+
+            <!-- 6. Analítica & Reportes (Solo Jefe) -->
+            <?php if (\Config\Auth::isJefe()): ?>
+                <div class="sidebar-heading">Analítica & Supervisión</div>
                 <a href="<?= url('/reports') ?>" class="sidebar-link <?= ($currentRoute === '/reports') ? 'active' : '' ?>">
                     <div class="sidebar-link-content">
                         <i class="bi bi-graph-up-arrow sidebar-link-icon"></i>
                         <span>Reportes Ejecutivos</span>
                     </div>
+                    <span class="badge sidebar-pill-badge">15 / 30 Días</span>
                 </a>
-
-            <?php else: ?>
-                <!-- Menú del Empleado (CRUD: Crear, Modificar y Ver) -->
-                <?php if (\Config\Auth::canManageContracts()): ?>
-                    <div class="sidebar-heading">Módulo de Contratos</div>
-                    <a href="<?= url('/contracts/create') ?>" class="sidebar-link <?= ($currentRoute === '/contracts/create') ? 'active' : '' ?>">
-                        <div class="sidebar-link-content">
-                            <i class="bi bi-file-earmark-plus-fill sidebar-link-icon"></i>
-                            <span>Generador Contratos</span>
-                        </div>
-                    </a>
-                    <a href="<?= url('/contracts/activities') ?>" class="sidebar-link <?= ($currentRoute === '/contracts/activities') ? 'active' : '' ?>">
-                        <div class="sidebar-link-content">
-                            <i class="bi bi-clock-history sidebar-link-icon"></i>
-                            <span>Actividades Contratos</span>
-                        </div>
-                    </a>
-                <?php endif; ?>
-
-                <?php if (\Config\Auth::canProduceMedia()): ?>
-                    <div class="sidebar-heading">Producción Creativa</div>
-                    <a href="<?= url('/activities/my-tasks') ?>" class="sidebar-link <?= ($currentRoute === '/activities/my-tasks' && empty($currentStatusParam)) ? 'active' : '' ?>">
-                        <div class="sidebar-link-content">
-                            <i class="bi bi-play-circle-fill sidebar-link-icon"></i>
-                            <span>Mis Tareas Audiovisuales</span>
-                        </div>
-                    </a>
-                    <a href="<?= url('/activities/my-tasks?status=APROBADA') ?>" class="sidebar-link <?= ($currentRoute === '/activities/my-tasks' && $currentStatusParam === 'APROBADA') ? 'active' : '' ?>">
-                        <div class="sidebar-link-content">
-                            <i class="bi bi-patch-check-fill sidebar-link-icon"></i>
-                            <span>Mis Tareas Culminadas</span>
-                        </div>
-                        <span class="badge sidebar-pill-badge">Aprobadas</span>
-                    </a>
-                <?php endif; ?>
             <?php endif; ?>
         </div>
 

@@ -13,6 +13,8 @@
 # Archivos de almacenamiento y temporales
 /storage/*
 !/storage/.gitkeep
+!/storage/contracts/
+!/storage/contracts/.gitkeep
 *.log
 cookie.txt
 

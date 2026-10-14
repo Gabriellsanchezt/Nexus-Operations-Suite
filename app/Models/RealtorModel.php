@@ -14,7 +14,6 @@ class RealtorModel extends Model {
     public function getAll(): array {
         $stmt = $this->db->query("
             SELECT r.*,
-                   (SELECT COUNT(*) FROM contracts c WHERE c.realtor_id = r.id AND c.status = 'APROBADO') AS active_contracts_count,
                    (SELECT COUNT(*) FROM activities a WHERE a.realtor_id = r.id) AS total_activities_count
             FROM realtors r
             ORDER BY r.company_name ASC
@@ -41,8 +40,8 @@ class RealtorModel extends Model {
             : ($data['social_handles'] ?? json_encode(['instagram' => '']));
 
         $stmt = $this->db->prepare("
-            INSERT INTO realtors (company_name, contact_person, phone, email, miami_zone, social_handles, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO realtors (company_name, contact_person, phone, email, miami_zone, credentials_url, dropbox_url, social_handles, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             trim($data['company_name']),
@@ -50,6 +49,8 @@ class RealtorModel extends Model {
             trim($data['phone']),
             trim($data['email']),
             trim($data['miami_zone']),
+            trim($data['credentials_url'] ?? '') ?: null,
+            trim($data['dropbox_url'] ?? '') ?: null,
             $socialJson,
             $data['status'] ?? 'ACTIVO'
         ]);
@@ -72,6 +73,8 @@ class RealtorModel extends Model {
                 phone = ?,
                 email = ?,
                 miami_zone = ?,
+                credentials_url = ?,
+                dropbox_url = ?,
                 social_handles = COALESCE(?, social_handles),
                 status = ?
             WHERE id = ?
@@ -82,10 +85,28 @@ class RealtorModel extends Model {
             trim($data['phone']),
             trim($data['email']),
             trim($data['miami_zone']),
+            trim($data['credentials_url'] ?? '') ?: null,
+            trim($data['dropbox_url'] ?? '') ?: null,
             $socialJson,
             $data['status'] ?? 'ACTIVO',
             $id
         ]);
+    }
+
+    /**
+     * Obtener los proyectos / actividades audiovisuales gestionados con el Realtor
+     */
+    public function getProjects(int $realtorId): array {
+        $stmt = $this->db->prepare("
+            SELECT a.*, e.full_name AS employee_name,
+                   (SELECT COUNT(*) FROM activity_deliverables ad WHERE ad.activity_id = a.id) AS deliverables_count
+            FROM activities a
+            JOIN employees e ON a.employee_id = e.id
+            WHERE a.realtor_id = ?
+            ORDER BY a.created_at DESC
+        ");
+        $stmt->execute([$realtorId]);
+        return $stmt->fetchAll();
     }
 
     /**

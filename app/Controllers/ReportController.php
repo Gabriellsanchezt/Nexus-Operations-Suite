@@ -1,7 +1,8 @@
 <?php
 /**
- * Controlador de Reportes Ejecutivos de Operaciones y Producción
- * Soporta Períodos Semanal, Quincenal y Mensual, y exportación a Excel / CSV
+ * Controlador de Reportes Ejecutivos
+ * Exclusivamente: Rendimiento y Productividad por Empleado
+ * Filtro exclusivo de 15 o 30 días
  */
 
 namespace App\Controllers;
@@ -19,82 +20,69 @@ class ReportController extends Controller {
     public function index(): void {
         Auth::requireJefe();
 
-        $period = $_GET['period'] ?? 'mensual';
-        if (!in_array($period, ['semanal', 'quincenal', 'mensual'], true)) {
-            $period = 'mensual';
+        $days = (int)($_GET['days'] ?? 30);
+        if ($days !== 15 && $days !== 30) {
+            $days = 30;
         }
 
-        $report = $this->reportModel->getExecutiveReport($period);
+        $report = $this->reportModel->getExecutiveReport($days);
 
         $this->render('reports/index', [
-            'pageTitle' => 'Reportes Ejecutivos de Operaciones y Producción',
+            'pageTitle' => "Reportes de Rendimiento & Productividad ({$days} Días)",
             'report' => $report,
-            'currentPeriod' => $period
+            'currentDays' => $days
         ]);
     }
 
     /**
-     * Exportación de datos consolidados a formato CSV compatible con Microsoft Excel
+     * Exportación de datos de rendimiento y productividad a formato CSV
      */
     public function exportExcel(): void {
         Auth::requireJefe();
 
-        $period = $_GET['period'] ?? 'mensual';
-        $report = $this->reportModel->getExecutiveReport($period);
+        $days = (int)($_GET['days'] ?? 30);
+        if ($days !== 15 && $days !== 30) {
+            $days = 30;
+        }
 
-        $filename = "reporte_operativo_miami_agency_{$period}_" . date('Ymd_His') . ".csv";
+        $report = $this->reportModel->getExecutiveReport($days);
+        $filename = "reporte_rendimiento_productividad_{$days}_dias_" . date('Ymd_His') . ".csv";
 
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
 
         $output = fopen('php://output', 'w');
-        // Escribir BOM UTF-8 para compatibilidad directa con Excel
+        // Escribir BOM UTF-8
         fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
 
-        // Cabecera del reporte
-        fputcsv($output, ['MIAMI LUXURY MEDIA AGENCY - REPORTE EJECUTIVO DE OPERACIONES Y PRODUCCION']);
-        fputcsv($output, ['Periodo:', strtoupper($period), 'Generado:', $report['generated_at']]);
+        fputcsv($output, ['MIAMI LUXURY MEDIA - REPORTE DE RENDIMIENTO Y PRODUCTIVIDAD']);
+        fputcsv($output, ['Periodo:', "Ultimos {$days} dias", 'Desde:', $report['since_date'], 'Generado:', $report['generated_at']]);
         fputcsv($output, []);
 
-        // Métricas de Contratos y Acuerdos
-        fputcsv($output, ['--- RESUMEN DE CONTRATOS Y ACUERDOS FORMALIZADOS ---']);
-        fputcsv($output, ['Métrica', 'Valor']);
-        fputcsv($output, ['Contratos Formalizados Aprobados', $report['financial']['total_approved_contracts']]);
-        fputcsv($output, ['Tareas Audiovisuales Culminadas', $report['operations']['completed_tasks']]);
-        fputcsv($output, ['Tareas en Proceso Activo', $report['operations']['in_progress_tasks'] + $report['operations']['in_review_tasks']]);
+        // 1. Resumen de Rendimiento General
+        fputcsv($output, ['--- METRICAS DE RENDIMIENTO GENERAL ---']);
+        fputcsv($output, ['Metrica', 'Valor']);
+        fputcsv($output, ['Tareas Totales en el Periodo', $report['performance']['total_tasks']]);
+        fputcsv($output, ['Tareas Culminadas y Aprobadas', $report['performance']['completed_tasks']]);
+        fputcsv($output, ['Tareas en Proceso Activo', $report['performance']['in_progress_tasks']]);
+        fputcsv($output, ['Tareas por Revisar', $report['performance']['in_review_tasks']]);
+        fputcsv($output, ['Tareas con Observaciones / Correccion', $report['performance']['correction_tasks']]);
+        fputcsv($output, ['Entregables Subidos en el Periodo', $report['performance']['total_deliverables']]);
+        fputcsv($output, ['Tasa de Efectividad General', $report['performance']['completion_rate'] . '%']);
         fputcsv($output, []);
 
-        // Desglose por Zona de Miami
-        fputcsv($output, ['--- COBERTURA Y CONTRATOS POR ZONA DE MIAMI ---']);
-        fputcsv($output, ['Zona de Miami', 'Contratos Formalizados', 'Estado Cobertura']);
-        foreach ($report['financial']['by_zone'] as $z) {
-            fputcsv($output, [
-                $z['miami_zone'],
-                $z['contract_count'],
-                'Cobertura Activa'
-            ]);
-        }
-        fputcsv($output, []);
-
-        // Resumen Operativo de Tareas Audiovisuales
-        fputcsv($output, ['--- METRICAS DE OPERACION AUDIOVISUAL ---']);
-        fputcsv($output, ['Métrica', 'Cantidad']);
-        fputcsv($output, ['Total Tareas Programadas', $report['operations']['total_tasks']]);
-        fputcsv($output, ['Tareas Culminadas y Aprobadas', $report['operations']['completed_tasks']]);
-        fputcsv($output, ['Tareas en Revisión de Entregables', $report['operations']['in_review_tasks']]);
-        fputcsv($output, ['Tareas en Proceso Activo', $report['operations']['in_progress_tasks']]);
-        fputcsv($output, ['Tareas con Observaciones / Corrección', $report['operations']['correction_tasks']]);
-        fputcsv($output, []);
-
-        // Rendimiento del Personal Creativo
-        fputcsv($output, ['--- DESEMPEÑO POR ESPECIALISTA CREATIVO ---']);
-        fputcsv($output, ['Especialista', 'Tareas Asignadas', 'Tareas Aprobadas', 'Correcciones']);
-        foreach ($report['operations']['staff'] as $st) {
+        // 2. Productividad por Empleado
+        fputcsv($output, ['--- PRODUCTIVIDAD POR EMPLEADO ---']);
+        fputcsv($output, ['Empleado', 'Tareas Asignadas', 'Tareas Culminadas', 'En Proceso', 'Por Revisar', 'Entregables Subidos', 'Tasa Cumplimiento']);
+        foreach ($report['staff_productivity'] as $st) {
             fputcsv($output, [
                 $st['full_name'],
                 $st['assigned_tasks'],
                 $st['completed_tasks'],
-                $st['rework_tasks']
+                $st['in_progress_tasks'],
+                $st['in_review_tasks'],
+                $st['deliverables_submitted'],
+                $st['completion_rate'] . '%'
             ]);
         }
 

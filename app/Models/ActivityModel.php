@@ -14,9 +14,9 @@ class ActivityModel extends Model {
      */
     public function getAll(array $filters = []): array {
         $sql = "
-            SELECT a.*, r.company_name, r.contact_person, r.miami_zone,
+            SELECT a.*, r.company_name, r.contact_person, r.miami_zone, r.dropbox_url, r.credentials_url,
                    e.full_name AS employee_name,
-                   c.contract_code,
+                   c.contract_title,
                    (SELECT COUNT(*) FROM activity_deliverables ad WHERE ad.activity_id = a.id) AS deliverables_count
             FROM activities a
             JOIN realtors r ON a.realtor_id = r.id
@@ -41,11 +41,7 @@ class ActivityModel extends Model {
             $params[] = (int)$filters['realtor_id'];
         }
 
-        $sql .= " ORDER BY CASE a.priority
-                    WHEN 'URGENTE' THEN 1
-                    WHEN 'ALTA' THEN 2
-                    WHEN 'MEDIA' THEN 3
-                    ELSE 4 END, a.scheduled_date ASC";
+        $sql .= " ORDER BY a.created_at DESC";
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
@@ -58,7 +54,8 @@ class ActivityModel extends Model {
     public function getByEmployee(int $employeeId, ?string $status = null): array {
         $sql = "
             SELECT a.*, r.company_name, r.contact_person, r.miami_zone, r.phone AS realtor_phone,
-                   c.contract_code
+                   r.dropbox_url, r.credentials_url,
+                   c.contract_title
             FROM activities a
             JOIN realtors r ON a.realtor_id = r.id
             LEFT JOIN contracts c ON a.contract_id = c.id
@@ -263,8 +260,9 @@ class ActivityModel extends Model {
     public function getById(int $id): ?array {
         $stmt = $this->db->prepare("
             SELECT a.*, r.company_name, r.contact_person, r.miami_zone, r.phone AS realtor_phone,
+                   r.dropbox_url, r.credentials_url,
                    e.full_name AS employee_name, e.phone AS employee_phone,
-                   c.contract_code
+                   c.contract_title
             FROM activities a
             JOIN realtors r ON a.realtor_id = r.id
             JOIN employees e ON a.employee_id = e.id

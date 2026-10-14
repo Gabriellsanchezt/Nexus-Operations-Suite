@@ -21,6 +21,8 @@ use App\Controllers\RealtorController;
 use App\Controllers\TeamController;
 use App\Controllers\ReportController;
 use App\Controllers\ProfileController;
+use App\Controllers\EmailMarketingController;
+use App\Controllers\MeetingController;
 
 // Inicializar sesión segura
 Auth::initSession();
@@ -106,6 +108,10 @@ try {
         // Módulos de Contratos
         case '/contracts/final':
             (new ContractController())->finalContracts();
+            break;
+
+        case '/contracts/view-pdf':
+            (new ContractController())->viewPdf();
             break;
 
         case '/contracts/approvals':
@@ -214,6 +220,10 @@ try {
             (new RealtorController())->index();
             break;
 
+        case '/realtors/projects':
+            (new RealtorController())->projects();
+            break;
+
         case '/realtors/store':
             if ($requestMethod === 'POST') {
                 (new RealtorController())->store();
@@ -294,6 +304,51 @@ try {
         case '/team/update-specialties':
             if ($requestMethod === 'POST') {
                 (new TeamController())->updateSpecialties();
+            }
+            break;
+
+        // Email Marketing (Cronograma & Calendario)
+        case '/email-marketing':
+            (new EmailMarketingController())->index();
+            break;
+
+        case '/email-marketing/store':
+            if ($requestMethod === 'POST') {
+                (new EmailMarketingController())->store();
+            }
+            break;
+
+        case '/email-marketing/update-status':
+            if ($requestMethod === 'POST') {
+                (new EmailMarketingController())->updateStatus();
+            }
+            break;
+
+        case '/email-marketing/delete':
+            if ($requestMethod === 'POST') {
+                (new EmailMarketingController())->delete();
+            }
+            break;
+
+        // Agenda de Reuniones (Google Calendar Sync)
+        case '/agenda':
+        case '/meetings':
+            (new MeetingController())->index();
+            break;
+
+        case '/agenda/store':
+            if ($requestMethod === 'POST') {
+                (new MeetingController())->store();
+            }
+            break;
+
+        case '/agenda/download-ics':
+            (new MeetingController())->downloadIcs();
+            break;
+
+        case '/agenda/delete':
+            if ($requestMethod === 'POST') {
+                (new MeetingController())->delete();
             }
             break;
 

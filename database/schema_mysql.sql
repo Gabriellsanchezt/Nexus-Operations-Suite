@@ -79,6 +79,8 @@ CREATE TABLE IF NOT EXISTS realtors (
     phone VARCHAR(30) NOT NULL,
     email VARCHAR(191) NOT NULL UNIQUE,
     miami_zone VARCHAR(100) NOT NULL,
+    credentials_url VARCHAR(500) NULL,
+    dropbox_url VARCHAR(500) NULL,
     social_handles JSON NULL,
     status VARCHAR(20) DEFAULT 'ACTIVO',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -87,52 +89,52 @@ CREATE TABLE IF NOT EXISTS realtors (
     INDEX idx_realtors_status (status)
 ) ENGINE=InnoDB;
 
--- 7. Plantillas Base Dinámicas de Contratos
-CREATE TABLE IF NOT EXISTS contract_templates (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(150) NOT NULL,
-    description TEXT NULL,
-    template_body_html LONGTEXT NOT NULL,
-    active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- 8. Contratos Generados
+-- 7. Almacén de Contratos Finales Concluidos (PDFs)
 CREATE TABLE IF NOT EXISTS contracts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     realtor_id INT NOT NULL,
-    template_id INT NOT NULL,
-    generated_by_employee_id INT NOT NULL,
-    contract_code VARCHAR(50) NOT NULL UNIQUE,
-    compiled_body_html LONGTEXT NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    monthly_fee DECIMAL(10,2) DEFAULT 0.00,
-    status VARCHAR(30) DEFAULT 'BORRADOR',
+    contract_title VARCHAR(200) NOT NULL,
+    pdf_filename VARCHAR(255) NOT NULL,
+    notes TEXT NULL,
+    uploaded_by_user_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_contracts_status (status),
     INDEX idx_contracts_realtor (realtor_id),
-    INDEX idx_contracts_employee (generated_by_employee_id),
-    INDEX idx_contracts_dates (start_date, end_date),
-    CONSTRAINT fk_contracts_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_contracts_template FOREIGN KEY (template_id) REFERENCES contract_templates(id) ON DELETE RESTRICT,
-    CONSTRAINT fk_contracts_employee FOREIGN KEY (generated_by_employee_id) REFERENCES employees(id) ON DELETE RESTRICT
+    INDEX idx_contracts_created (created_at),
+    CONSTRAINT fk_contracts_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- 9. Historial y Revisiones de Contratos (Auditoría del Jefe)
-CREATE TABLE IF NOT EXISTS contract_reviews (
+-- 8. Cronograma y Calendario de Email Marketing
+CREATE TABLE IF NOT EXISTS email_campaigns (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    contract_id INT NOT NULL,
-    reviewer_user_id INT NOT NULL,
-    status_assigned VARCHAR(30) NOT NULL,
-    feedback_notes TEXT NULL,
+    realtor_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    scheduled_date DATE NOT NULL,
+    status VARCHAR(30) DEFAULT 'PROGRAMADO',
+    notes TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX idx_cr_contract (contract_id),
-    INDEX idx_cr_reviewer (reviewer_user_id),
-    CONSTRAINT fk_cr_contract FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE CASCADE,
-    CONSTRAINT fk_cr_reviewer FOREIGN KEY (reviewer_user_id) REFERENCES users(id) ON DELETE RESTRICT
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_ec_realtor (realtor_id),
+    INDEX idx_ec_date (scheduled_date),
+    CONSTRAINT fk_ec_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- 9. Agenda de Reuniones (Sincronización con Google Calendar)
+CREATE TABLE IF NOT EXISTS meetings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    realtor_id INT NULL,
+    meeting_date DATE NOT NULL,
+    meeting_time TIME NOT NULL,
+    duration_minutes INT DEFAULT 30,
+    meeting_link VARCHAR(500) NULL,
+    description TEXT NULL,
+    status VARCHAR(30) DEFAULT 'PROGRAMADA',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_meetings_date (meeting_date),
+    INDEX idx_meetings_realtor (realtor_id),
+    CONSTRAINT fk_meetings_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- 10. Tareas y Actividades Audiovisuales

@@ -87,17 +87,21 @@ class Database {
         // 1. Roles
         $pdo->exec("
             INSERT INTO roles (id, name, description) VALUES
-            (1, 'JEFE_ADMIN', 'Administrador General, aprobación de contratos y supervisión ejecutiva'),
-            (2, 'EMPLEADO', 'Personal de planta con especialidades asignadas');
+            (1, 'JEFE', 'Dirección General, supervisión total y control operativo'),
+            (2, 'ASISTENTE', 'Asistente Operativo, gestión de agendas, Realtors y soporte'),
+            (3, 'ESTRATEGA_MARKETING', 'Estrategia de Marketing, cronograma de emails y campañas'),
+            (4, 'SOCIAL_MANAGER', 'Social Media Manager, producción y entregables de contenido');
         ");
 
         // 2. Especialidades Granulares
         $pdo->exec("
             INSERT INTO specialties (id, code, name, description) VALUES
-            (2, 'EDITOR_VIDEO', 'Editor de Video', 'Edición de reels y walkthroughs en Premiere / DaVinci'),
-            (3, 'DISENADOR_CARRUSELES', 'Diseñador de Carruseles', 'Diseño de carruseles de propiedades e infografías inmobiliarias'),
-            (4, 'CAMAROGRAFO', 'Camarógrafo / Piloto Dron', 'Rodajes en locación de propiedades en Miami'),
-            (5, 'COMMUNITY_MANAGER', 'Community Manager', 'Copywriting, publicación y métricas de redes de Realtors');
+            (1, 'EDITOR_VIDEO', 'Editor de Videos', 'Edición de reels, videos de propiedades y walkthroughs'),
+            (2, 'EDITOR_CARRUSELES', 'Editor de Carruseles', 'Diseño de carruseles de propiedades e infografías'),
+            (3, 'EMAIL_MARKETING', 'Email Marketing', 'Campañas y newsletters para base de datos de Realtors'),
+            (4, 'BLOGGERS', 'Bloggers', 'Redacción de artículos de blog y contenido editorial'),
+            (5, 'AGENDADOR_REUNIONES', 'Agendador de Reuniones', 'Coordinación y agenda de llamadas con clientes y prospectos'),
+            (6, 'AUTOMATIZADOR', 'Automatizador', 'Automatización de flujos de trabajo, CRM y secuencias');
         ");
 
         // 3. Usuarios iniciales (password: 'password123' hasheada con bcrypt)
@@ -106,116 +110,72 @@ class Database {
         $stmt = $pdo->prepare("
             INSERT INTO users (id, email, password_hash, role_id, status) VALUES
             (1, 'jefe@miamiagency.com', ?, 1, 'ACTIVO'),
-            (2, 'contratos@miamiagency.com', ?, 2, 'ACTIVO'),
-            (3, 'editor@miamiagency.com', ?, 2, 'ACTIVO'),
-            (4, 'creativo@miamiagency.com', ?, 2, 'ACTIVO')
+            (2, 'asistente@miamiagency.com', ?, 2, 'ACTIVO'),
+            (3, 'estrategia@miamiagency.com', ?, 3, 'ACTIVO'),
+            (4, 'social@miamiagency.com', ?, 4, 'ACTIVO')
         ");
         $stmt->execute([$passHash, $passHash, $passHash, $passHash]);
 
-        // 4. Asignación de especialidades
-        // Usuario 3 -> EDITOR_VIDEO
-        // Usuario 4 -> DISENADOR_CARRUSELES y CAMAROGRAFO
-        $pdo->exec("
-            INSERT INTO user_specialties (user_id, specialty_id) VALUES
-            (3, 2),
-            (4, 3),
-            (4, 4);
-        ");
-
-        // 5. Perfil de Empleados
+        // 4. Perfil de Empleados
         $pdo->exec("
             INSERT INTO employees (id, user_id, full_name, phone, hire_date) VALUES
-            (1, 1, 'Carlos Mendoza (Jefe)', '+1 (305) 555-0199', '2023-01-15'),
-            (2, 2, 'Valentina Rossi (Account & Contracts)', '+1 (305) 555-0144', '2023-06-01'),
-            (3, 3, 'Mateo Silva (Lead Video Editor)', '+1 (305) 555-0178', '2023-08-15'),
-            (4, 4, 'Camila Duarte (Creative & Filmmaker)', '+1 (305) 555-0122', '2024-01-10');
+            (1, 1, 'Carlos Mendoza (Jefe)', '+1 (305) 555-0101', '2024-01-15'),
+            (2, 2, 'Valentina Rossi (Asistente)', '+1 (305) 555-0102', '2024-03-01'),
+            (3, 3, 'Sofía Herrera (Estratega Mkt)', '+1 (305) 555-0103', '2024-04-10'),
+            (4, 4, 'Mateo Silva (Social Manager)', '+1 (305) 555-0104', '2024-05-20');
         ");
 
-        // 6. Realtors en Miami
+        // 5. Asignación de especialidades
         $pdo->exec("
-            INSERT INTO realtors (id, company_name, contact_person, phone, email, miami_zone, social_handles, status) VALUES
-            (1, 'One Sotheby’s International Realty', 'Elena Rostova', '+1 (305) 789-4321', 'elena.rostova@sothebysrealty.com', 'Brickell / Financial District', '{\"instagram\":\"@elena_luxury_brickell\",\"tiktok\":\"@elenarostovamiami\"}', 'ACTIVO'),
-            (2, 'The Jills Zeder Group / Coldwell Banker', 'Marcus Sterling', '+1 (305) 890-1122', 'marcus.s@jillszeder.com', 'Miami Beach / South Beach', '{\"instagram\":\"@marcus_southbeach_estates\"}', 'ACTIVO'),
-            (3, 'Compass Florida Luxury Division', 'Sofia Alvarez', '+1 (305) 441-9988', 'sofia.alvarez@compass.com', 'Coral Gables', '{\"instagram\":\"@sofiaalvarez_coralgables\"}', 'ACTIVO'),
-            (4, 'Fortune International Group', 'David Goldstein', '+1 (305) 672-3344', 'david.g@fortuneintl.com', 'Sunny Isles Beach', '{\"instagram\":\"@goldstein_sunnyisles\"}', 'ACTIVO');
+            INSERT INTO user_specialties (user_id, specialty_id) VALUES
+            (2, 5),
+            (3, 3),
+            (3, 4),
+            (3, 6),
+            (4, 1),
+            (4, 2);
         ");
 
-        // 7. Plantillas Dinámicas de Contratos
-        $templateHtml1 = <<<'HTML'
-<div class="contract-document p-4 bg-white border rounded">
-    <div class="text-center mb-4 border-bottom pb-3">
-        <h2 class="text-uppercase fw-bold text-dark mb-1">MIAMI LUXURY MEDIA AGENCY LLC</h2>
-        <p class="text-muted small mb-0">401 Biscayne Blvd, Suite 2200, Miami, FL 33132 | Phone: +1 (305) 555-9000</p>
-        <span class="badge bg-dark mt-2">CONTRATO DE PRESTACIÓN DE SERVICIOS AUDIOVISUALES & MARKETING INMOBILIARIO</span>
-    </div>
-
-    <div class="mb-4">
-        <p class="lead fs-6">
-            El presente acuerdo se celebra el día <strong>{{START_DATE}}</strong> entre <strong>MIAMI LUXURY MEDIA AGENCY LLC</strong> (en adelante, la "Agencia") y el cliente <strong>{{CONTACT_PERSON}}</strong> en representación de <strong>{{COMPANY_NAME}}</strong> (en adelante, el "Realtor"), con ámbito de cobertura principal en la zona de <strong>{{MIAMI_ZONE}}</strong>, Condado de Miami-Dade, Florida.
-        </p>
-    </div>
-
-    <h5 class="fw-bold border-bottom pb-1">CLÁUSULA PRIMERA: OBJETO DEL SERVICIO Y ENTREGABLES</h5>
-    <p>La Agencia proporcionará producción audiovisual cinematográfica y contenido de alto impacto para la cartera de propiedades del Realtor, incluyendo:</p>
-    <div class="p-3 bg-light rounded border mb-3">
-        <strong>Detalle del Paquete Contratado:</strong><br>
-        {{SERVICES_DESCRIPTION}}
-    </div>
-
-    <h5 class="fw-bold border-bottom pb-1">CLÁUSULA SEGUNDA: ALCANCE OPERATIVO Y PRODUCCIÓN MENSUAL</h5>
-    <p>La Agencia y el Realtor acuerdan un flujo continuo de producción audiovisual y cobertura territorial en Miami-Dade, conforme al plan operativo y entregables estipulados en este acuerdo.</p>
-
-    <h5 class="fw-bold border-bottom pb-1">CLÁUSULA TERCERA: VIGENCIA Y DERECHOS DE IMAGEN</h5>
-    <p>El presente contrato entrará en vigor el <strong>{{START_DATE}}</strong> y mantendrá su validez hasta el <strong>{{END_DATE}}</strong>. Todos los entregables finales autorizados podrán ser difundidos en redes sociales (Instagram, TikTok, YouTube) y plataformas MLS sin restricción territorial por parte del Realtor.</p>
-
-    <div class="row mt-5 pt-4 text-center">
-        <div class="col-6">
-            <div class="border-top border-dark pt-2 mx-4">
-                <strong>Por: MIAMI LUXURY MEDIA AGENCY LLC</strong><br>
-                <small class="text-muted">Representante Autorizado</small>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="border-top border-dark pt-2 mx-4">
-                <strong>Por: {{COMPANY_NAME}}</strong><br>
-                <small class="text-muted">{{CONTACT_PERSON}} - Realtor Asociado</small>
-            </div>
-        </div>
-    </div>
-</div>
-HTML;
-
-        $stmtTpl = $pdo->prepare("
-            INSERT INTO contract_templates (id, title, description, template_body_html, active) VALUES
-            (1, 'Contrato Estándar Audiovisual & Redes para Realtors', 'Plantilla corporativa con cláusulas para producción de reels, walkthroughs y derechos MLS en el Condado de Miami-Dade.', ?, 1)
-        ");
-        $stmtTpl->execute([$templateHtml1]);
-
-        // 8. Contrato de prueba (Aprobado en Repositorio del Jefe)
-        $compiledBodyDemo = str_replace(
-            ['{{START_DATE}}', '{{END_DATE}}', '{{CONTACT_PERSON}}', '{{COMPANY_NAME}}', '{{MIAMI_ZONE}}', '{{SERVICES_DESCRIPTION}}'],
-            ['2026-01-01', '2026-12-31', 'Elena Rostova', 'One Sotheby’s International Realty', 'Brickell / Financial District', '4 Reels cinematográficos 4K con dron + 1 Walkthrough de 2 minutos mensuales'],
-            $templateHtml1
-        );
-
+        // 6. Realtors en Miami con enlaces a Bóveda de Credenciales y Dropbox
         $pdo->exec("
-            INSERT INTO contracts (id, realtor_id, template_id, generated_by_employee_id, contract_code, compiled_body_html, start_date, end_date, monthly_fee, status) VALUES
-            (1, 1, 1, 2, 'MIA-CTR-2026-001', " . $pdo->quote($compiledBodyDemo) . ", '2026-01-01', '2026-12-31', 0.00, 'APROBADO');
-
-            INSERT INTO contract_reviews (contract_id, reviewer_user_id, status_assigned, feedback_notes) VALUES
-            (1, 1, 'APROBADO', 'Contrato inicial firmado y verificado con One Sothebys Brickell.');
+            INSERT INTO realtors (id, company_name, contact_person, phone, email, miami_zone, credentials_url, dropbox_url, social_handles, status) VALUES
+            (1, 'One Sotheby’s International Realty', 'Elena Rostova', '+1 (305) 789-4321', 'elena.rostova@sothebysrealty.com', 'Brickell / Financial District', 'https://vault.miamiluxury.internal/realtor/elena-sothebys', 'https://www.dropbox.com/sh/sothebys-elena-brickell/AAAw123', '{\"instagram\":\"@elena_luxury_brickell\",\"tiktok\":\"@elenarostovamiami\"}', 'ACTIVO'),
+            (2, 'The Jills Zeder Group / Coldwell Banker', 'Marcus Sterling', '+1 (305) 890-1122', 'marcus.s@jillszeder.com', 'Miami Beach / South Beach', 'https://vault.miamiluxury.internal/realtor/marcus-coldwell', 'https://www.dropbox.com/sh/coldwell-marcus-beach/BBBw456', '{\"instagram\":\"@marcus_southbeach_estates\"}', 'ACTIVO'),
+            (3, 'Compass Florida Luxury Division', 'Sofia Alvarez', '+1 (305) 441-9988', 'sofia.alvarez@compass.com', 'Coral Gables', 'https://vault.miamiluxury.internal/realtor/sofia-compass', 'https://www.dropbox.com/sh/compass-sofia-gables/CCCw789', '{\"instagram\":\"@sofiaalvarez_coralgables\"}', 'ACTIVO'),
+            (4, 'Fortune International Group', 'David Goldstein', '+1 (305) 672-3344', 'david.g@fortuneintl.com', 'Sunny Isles Beach', 'https://vault.miamiluxury.internal/realtor/david-fortune', 'https://www.dropbox.com/sh/fortune-david-sunnyisles/DDDw012', '{\"instagram\":\"@goldstein_sunnyisles\"}', 'ACTIVO');
         ");
 
-        // 9. Actividades Audiovisuales iniciales
+        // 7. Contratos Finales (Almacén de PDFs Concluidos con Fecha de Subida Automática)
+        $pdo->exec("
+            INSERT INTO contracts (id, realtor_id, contract_title, pdf_filename, notes, uploaded_by_user_id, created_at) VALUES
+            (1, 1, 'Acuerdo Operativo Audiovisual Anual - One Sothebys Brickell', 'contrato_final_sothebys_elena_2026.pdf', 'Contrato firmado legalmente y validado.', 1, CURRENT_TIMESTAMP),
+            (2, 2, 'Convenio de Producción Mensual Redes - The Jills Zeder', 'contrato_marcus_coldwell_final.pdf', 'PDF subido concluido por gerencia.', 2, CURRENT_TIMESTAMP);
+        ");
+
+        // 8. Actividades Audiovisuales iniciales
         $pdo->exec("
             INSERT INTO activities (id, title, description, realtor_id, employee_id, contract_id, activity_type, priority, scheduled_date, current_status) VALUES
-            (1, 'Edición Reel Penthouse Brickell Flatiron', 'Montaje con música de tendencia y tomas de balcón al atardecer', 1, 3, 1, 'EDICION_VIDEO', 'ALTA', '2026-10-12', 'EN_PROCESO'),
-            (2, 'Carrusel 5 Tips de Inversión en South Beach', 'Diseño de 7 láminas en Canva/Photoshop con paleta de colores de Coldwell', 2, 4, NULL, 'CARRUSEL_FOTO', 'MEDIA', '2026-10-14', 'NUEVA'),
+            (1, 'Edición Reel Penthouse Brickell Flatiron', 'Montaje con música de tendencia y tomas de balcón al atardecer', 1, 4, 1, 'EDICION_VIDEO', 'ALTA', '2026-10-12', 'EN_PROCESO'),
+            (2, 'Carrusel 5 Tips de Inversión en South Beach', 'Diseño de 7 láminas en Canva/Photoshop con paleta de colores de Coldwell', 2, 4, 2, 'CARRUSEL_FOTO', 'MEDIA', '2026-10-14', 'NUEVA'),
             (3, 'Grabación Dron & Gimbal Mansión Coral Gables', 'Rodaje en locación con Realtor Marcus Sterling a las 9:00 AM', 3, 4, NULL, 'RODAJE_CAMARA', 'URGENTE', '2026-10-15', 'NUEVA'),
-            (4, 'Edición Video Walkthrough Sunny Isles', 'Recorte de tomas y etalonaje en DaVinci Resolve', 4, 3, NULL, 'EDICION_VIDEO', 'MEDIA', '2026-10-10', 'ENTREGADA_REVISION');
+            (4, 'Edición Video Walkthrough Sunny Isles', 'Recorte de tomas y etalonaje en DaVinci Resolve', 4, 4, NULL, 'EDICION_VIDEO', 'MEDIA', '2026-10-10', 'ENTREGADA_REVISION');
 
             INSERT INTO activity_deliverables (id, activity_id, deliverable_url, deliverable_type, notes) VALUES
             (1, 4, 'https://frame.io/v/miami-sunny-isles-walkthrough-v1', 'FRAME_IO', 'Versión preliminar con corrección de color y música instrumental aprobada.');
+        ");
+
+        // 9. Campañas Email Marketing
+        $pdo->exec("
+            INSERT INTO email_campaigns (id, realtor_id, title, scheduled_date, status, notes) VALUES
+            (1, 1, 'Newsletter Mensual: Oportunidades Pre-construcción Brickell', '2026-10-18', 'PROGRAMADO', 'Base de datos compradores calificados de Elena Rostova'),
+            (2, 2, 'Email Blast: Reducción de Precio Mansión Venetian Islands', '2026-10-20', 'PROGRAMADO', 'Filtro contactos VIP Miami Beach');
+        ");
+
+        // 10. Reuniones Agendadas
+        $pdo->exec("
+            INSERT INTO meetings (id, title, realtor_id, meeting_date, meeting_time, duration_minutes, meeting_link, description, status) VALUES
+            (1, 'Revisión Estratégica Trimestral con Elena Rostova', 1, '2026-10-16', '10:00:00', 45, 'https://meet.google.com/abc-defg-hij', 'Alineación de lanzamientos audiovisuales en Brickell', 'PROGRAMADA'),
+            (2, 'Kickoff Campaña de Dron con Marcus Sterling', 2, '2026-10-17', '14:30:00', 30, 'https://meet.google.com/xyz-uvwx-rst', 'Coordinación logística de acceso a propiedad en South Beach', 'PROGRAMADA');
         ");
     }
 }

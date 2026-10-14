@@ -96,6 +96,13 @@
                                 <td>
                                     <div class="fw-semibold"><?= htmlspecialchars($act['company_name']) ?></div>
                                     <small class="text-muted"><?= htmlspecialchars($act['miami_zone']) ?></small>
+                                    <?php if (!empty($act['dropbox_url'])): ?>
+                                        <div class="mt-1">
+                                            <a href="<?= htmlspecialchars($act['dropbox_url']) ?>" target="_blank" rel="noopener noreferrer" class="badge bg-primary-subtle text-primary border border-primary-subtle text-decoration-none">
+                                                <i class="bi bi-dropbox me-1"></i> Dropbox
+                                            </a>
+                                        </div>
+                                    <?php endif; ?>
                                 </td>
                                 <td>
                                     <span class="badge bg-light text-dark border">

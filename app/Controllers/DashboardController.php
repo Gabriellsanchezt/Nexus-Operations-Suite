@@ -28,8 +28,7 @@ class DashboardController extends Controller {
         $realtorModel = new RealtorModel();
 
         $activityCounts = $activityModel->getDashboardCounts();
-        $pendingApprovals = $contractModel->getPendingApprovals();
-        $finalContracts = $contractModel->getFinalApprovedContracts();
+        $finalContracts = $contractModel->getAll();
         $allActivities = $activityModel->getAll();
         $recentActivities = array_slice($allActivities, 0, 5);
         $realtors = $realtorModel->getAll();
@@ -37,7 +36,6 @@ class DashboardController extends Controller {
         $this->render('dashboard/jefe', [
             'pageTitle' => 'Panel Ejecutivo de Dirección (Jefe)',
             'counts' => $activityCounts,
-            'pendingApprovals' => $pendingApprovals,
             'finalContractsCount' => count($finalContracts),
             'allActivities' => $allActivities,
             'recentActivities' => $recentActivities,
@@ -48,26 +46,16 @@ class DashboardController extends Controller {
     private function showEmpleadoDashboard(): void {
         $user = Auth::user();
         $activityModel = new ActivityModel();
-        $contractModel = new ContractModel();
 
         $myTasks = [];
-        $myDrafts = [];
-
-        // Obtener todas las actividades asignadas al empleado para su mini calendario
         if (!empty($user['employee_id'])) {
             $myTasks = $activityModel->getByEmployee((int)$user['employee_id']);
-        }
-
-        // Borradores de contratos del empleado
-        if (Auth::canManageContracts() && !empty($user['employee_id'])) {
-            $myDrafts = $contractModel->getEmployeeDrafts((int)$user['employee_id']);
         }
 
         $this->render('dashboard/empleado', [
             'pageTitle' => 'Panel de Trabajo - ' . $user['full_name'],
             'user' => $user,
-            'myTasks' => $myTasks,
-            'myDrafts' => $myDrafts
+            'myTasks' => $myTasks
         ]);
     }
 

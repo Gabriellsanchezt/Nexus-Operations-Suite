@@ -28,13 +28,15 @@ class RealtorController extends Controller {
     }
 
     public function store(): void {
-        Auth::requireAuth(); // Jefe y Empleados pueden registrar clientes
+        Auth::requireAuth(); // Todos los perfiles pueden registrar clientes
 
         $company = $_POST['company_name'] ?? '';
         $contact = $_POST['contact_person'] ?? '';
         $phone = $_POST['phone'] ?? '';
         $email = $_POST['email'] ?? '';
         $zone = $_POST['miami_zone'] ?? '';
+        $credentialsUrl = $_POST['credentials_url'] ?? '';
+        $dropboxUrl = $_POST['dropbox_url'] ?? '';
         $instagram = $_POST['instagram'] ?? '';
         $tiktok = $_POST['tiktok'] ?? '';
 
@@ -50,6 +52,8 @@ class RealtorController extends Controller {
                 'phone' => $phone,
                 'email' => $email,
                 'miami_zone' => $zone,
+                'credentials_url' => $credentialsUrl,
+                'dropbox_url' => $dropboxUrl,
                 'social_handles' => [
                     'instagram' => $instagram,
                     'tiktok' => $tiktok
@@ -65,7 +69,7 @@ class RealtorController extends Controller {
     }
 
     public function update(): void {
-        Auth::requireAuth(); // Jefe y Empleados pueden modificar clientes
+        Auth::requireAuth();
 
         $id = (int)($_POST['id'] ?? 0);
         if (!$id) {
@@ -79,6 +83,8 @@ class RealtorController extends Controller {
             'phone' => $_POST['phone'],
             'email' => $_POST['email'],
             'miami_zone' => $_POST['miami_zone'],
+            'credentials_url' => $_POST['credentials_url'] ?? '',
+            'dropbox_url' => $_POST['dropbox_url'] ?? '',
             'social_handles' => [
                 'instagram' => $_POST['instagram'] ?? '',
                 'tiktok' => $_POST['tiktok'] ?? ''
@@ -88,6 +94,29 @@ class RealtorController extends Controller {
 
         $this->setFlash('success', 'Datos del Realtor actualizados correctamente.');
         $this->redirect('/realtors');
+    }
+
+    /**
+     * Endpoint API para consultar el expediente y proyectos del Realtor (Botón Ver)
+     */
+    public function projects(): void {
+        Auth::requireAuth();
+        $id = (int)($_GET['id'] ?? 0);
+        $realtor = $this->realtorModel->getById($id);
+        if (!$realtor) {
+            http_response_code(404);
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Realtor no encontrado']);
+            exit;
+        }
+
+        $projects = $this->realtorModel->getProjects($id);
+        header('Content-Type: application/json');
+        echo json_encode([
+            'realtor' => $realtor,
+            'projects' => $projects
+        ]);
+        exit;
     }
 
     public function delete(): void {

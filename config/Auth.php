@@ -114,15 +114,53 @@ class Auth {
      */
     public static function isJefe(): bool {
         $user = self::user();
-        return $user !== null && $user['role'] === 'JEFE_ADMIN';
+        return $user !== null && in_array($user['role'], ['JEFE', 'JEFE_ADMIN'], true);
     }
 
     /**
-     * Verificar si el usuario actual es un empleado
+     * Verificar si el usuario actual es Asistente
+     */
+    public static function isAsistente(): bool {
+        $user = self::user();
+        return $user !== null && $user['role'] === 'ASISTENTE';
+    }
+
+    /**
+     * Verificar si el usuario actual es Estratega de Marketing
+     */
+    public static function isEstratega(): bool {
+        $user = self::user();
+        return $user !== null && $user['role'] === 'ESTRATEGA_MARKETING';
+    }
+
+    /**
+     * Verificar si el usuario actual es Social Manager
+     */
+    public static function isSocialManager(): bool {
+        $user = self::user();
+        return $user !== null && $user['role'] === 'SOCIAL_MANAGER';
+    }
+
+    /**
+     * Retorna una etiqueta legible para el rol en vistas
+     */
+    public static function getRoleLabel(?string $role = null): string {
+        $role = $role ?? (self::user()['role'] ?? '');
+        return match ($role) {
+            'JEFE', 'JEFE_ADMIN' => 'Jefe (Dirección)',
+            'ASISTENTE' => 'Asistente Operativo',
+            'ESTRATEGA_MARKETING' => 'Estrategia de Marketing',
+            'SOCIAL_MANAGER' => 'Social Manager',
+            default => 'Colaborador'
+        };
+    }
+
+    /**
+     * Verificar si el usuario actual es un empleado/colaborador
      */
     public static function isEmpleado(): bool {
         $user = self::user();
-        return $user !== null && $user['role'] === 'EMPLEADO';
+        return $user !== null && !self::isJefe();
     }
 
     /**
@@ -132,7 +170,7 @@ class Auth {
     public static function hasSpecialty(string $code): bool {
         $user = self::user();
         if (!$user) return false;
-        if ($user['role'] === 'JEFE_ADMIN') return true;
+        if (self::isJefe()) return true;
 
         return in_array($code, $user['specialties'], true);
     }

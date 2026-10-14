@@ -7,13 +7,8 @@
         <a href="<?= url('/reports') ?>" class="btn btn-outline-dark">
             <i class="bi bi-graph-up me-1"></i> Reportes Ejecutivos
         </a>
-        <a href="<?= url('/contracts/approvals') ?>" class="btn btn-warning position-relative fw-semibold">
-            <i class="bi bi-file-earmark-check-fill me-1"></i> Revisar Contratos
-            <?php if (count($pendingApprovals) > 0): ?>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    <?= count($pendingApprovals) ?>
-                </span>
-            <?php endif; ?>
+        <a href="<?= url('/contracts/final') ?>" class="btn btn-outline-danger fw-semibold">
+            <i class="bi bi-file-earmark-pdf me-1"></i> Contratos Finales (PDF)
         </a>
     </div>
 </div>
@@ -84,6 +79,12 @@
         </div>
     </div>
 </div>
+
+<!-- TABLERO DE PRODUCCIÓN ESCALABLE POR TIEMPO (FIFO) -->
+<?php
+$activities = $allActivities ?? [];
+require APP_PATH . '/Views/dashboard/partials/production_board.php';
+?>
 
 <!-- MINI CALENDARIO INTERACTIVO DE ACTIVIDADES DEL MES (DIRECCIÓN) -->
 <?php

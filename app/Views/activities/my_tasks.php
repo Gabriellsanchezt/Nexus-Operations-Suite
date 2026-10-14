@@ -111,9 +111,11 @@
                                 <div class="col-6 mt-1">
                                     <span class="text-muted">Fecha Límite:</span> <strong><?= htmlspecialchars($t['scheduled_date']) ?></strong>
                                 </div>
-                                <?php if (!empty($t['contract_code'])): ?>
-                                    <div class="col-12 mt-1">
-                                        <span class="text-muted">Contrato Vinculado:</span> <span class="badge bg-dark font-monospace"><?= htmlspecialchars($t['contract_code']) ?></span>
+                                <?php if (!empty($t['dropbox_url'])): ?>
+                                    <div class="col-12 mt-2 pt-2 border-top">
+                                        <a href="<?= htmlspecialchars($t['dropbox_url']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary w-100 fw-semibold d-flex align-items-center justify-content-center gap-2">
+                                            <i class="bi bi-dropbox"></i> Abrir Recursos y Material en Dropbox
+                                        </a>
                                     </div>
                                 <?php endif; ?>
                             </div>
