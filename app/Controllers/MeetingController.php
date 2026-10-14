@@ -9,14 +9,17 @@ namespace App\Controllers;
 use Config\Auth;
 use App\Models\MeetingModel;
 use App\Models\RealtorModel;
+use App\Models\UserModel;
 
 class MeetingController extends Controller {
     private MeetingModel $meetingModel;
     private RealtorModel $realtorModel;
+    private UserModel $userModel;
 
     public function __construct() {
         $this->meetingModel = new MeetingModel();
         $this->realtorModel = new RealtorModel();
+        $this->userModel = new UserModel();
     }
 
     public function index(): void {
@@ -24,8 +27,9 @@ class MeetingController extends Controller {
 
         $meetings = $this->meetingModel->getAll();
         $realtors = $this->realtorModel->getAll();
+        $employees = $this->userModel->getAllEmployeesWithDetails();
 
-        // Enriquecer cada reunión con su link oficial de Google Calendar
+        // Enriquecer cada reunión con su link oficial de Google Calendar con los asistentes incluidos
         foreach ($meetings as &$m) {
             $m['google_calendar_url'] = MeetingModel::buildGoogleCalendarUrl($m);
         }
@@ -33,7 +37,8 @@ class MeetingController extends Controller {
         $this->render('meetings/index', [
             'pageTitle' => 'Agenda de Reuniones & Sincronización Google Calendar',
             'meetings' => $meetings,
-            'realtors' => $realtors
+            'realtors' => $realtors,
+            'employees' => $employees
         ]);
     }
 
@@ -42,30 +47,28 @@ class MeetingController extends Controller {
 
         $title = trim($_POST['title'] ?? '');
         $realtorId = !empty($_POST['realtor_id']) ? (int)$_POST['realtor_id'] : null;
+        $employeeId = !empty($_POST['employee_id']) ? (int)$_POST['employee_id'] : null;
         $date = $_POST['meeting_date'] ?? date('Y-m-d');
         $time = $_POST['meeting_time'] ?? '10:00';
-        $duration = (int)($_POST['duration_minutes'] ?? 30);
-        $link = trim($_POST['meeting_link'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
         if (empty($title) || empty($date) || empty($time)) {
-            $this->setFlash('error', 'El título, fecha y hora de la reunión son obligatorios.');
+            $this->setFlash('error', 'El título, la fecha y la hora de inicio de la reunión son obligatorios.');
             $this->redirect('/agenda');
         }
 
         try {
-            $meetingId = $this->meetingModel->create([
+            $this->meetingModel->create([
                 'title' => $title,
                 'realtor_id' => $realtorId,
+                'employee_id' => $employeeId,
                 'meeting_date' => $date,
                 'meeting_time' => $time,
-                'duration_minutes' => $duration,
-                'meeting_link' => $link,
+                'duration_minutes' => 30, // Cálculo automático de bloque de calendario
                 'description' => $description
             ]);
 
-            // Generar enlace temporal para feedback
-            $this->setFlash('success', "Reunión agendada exitosamente. Haz clic en 'Añadir a Google Calendar' para sincronizarla con tu teléfono y recibir recordatorios.");
+            $this->setFlash('success', "Reunión agendada exitosamente. Se ha vinculado al correo del trabajador asignado para la sincronización con Google Calendar y aviso al teléfono móvil.");
         } catch (\Exception $e) {
             $this->setFlash('error', 'Error al agendar reunión: ' . $e->getMessage());
         }

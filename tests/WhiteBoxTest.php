@@ -248,23 +248,36 @@ class WhiteBoxTestSuite {
             'meeting_time' => '14:30:00',
             'duration_minutes' => 45,
             'company_name' => 'Brickell Real Estate Group',
-            'miami_zone' => 'Brickell / Financial District',
-            'meeting_link' => 'https://meet.google.com/test-abc-123'
+            'contact_person' => 'Elena Rostova',
+            'realtor_email' => 'elena.rostova@sothebysrealty.com',
+            'employee_name' => 'Valentina Rossi',
+            'employee_email' => 'asistente@miamiagency.com',
+            'miami_zone' => 'Brickell / Financial District'
         ];
 
-        // 1. Enlace Google Calendar
+        // 1. Enlace Google Calendar con parámetro 'add' para notificar al correo del trabajador y cliente
         $gUrl = MeetingModel::buildGoogleCalendarUrl($testMeeting);
         $this->assert(str_starts_with($gUrl, 'https://calendar.google.com/calendar/render?action=TEMPLATE'), 'Enlace de Google Calendar cumple con esquema oficial');
         $this->assert(str_contains($gUrl, '20261120T143000'), 'Fecha y hora de inicio formateadas en estandar ISO (20261120T143000)');
         $this->assert(str_contains($gUrl, '20261120T151500'), 'Calculo de duracion sumado correctamente (45 min -> 151500)');
+        $this->assert(str_contains(urldecode($gUrl), 'add=asistente@miamiagency.com,elena.rostova@sothebysrealty.com'), 'Enlace de Google Calendar incluye parametro add con correo del trabajador y cliente');
 
-        // 2. Generador ICS (RFC 5545)
+        // 2. Generador ICS (RFC 5545) con asistentes invitados
         $ics = MeetingModel::generateIcs($testMeeting);
         $this->assert(str_contains($ics, 'BEGIN:VCALENDAR'), 'ICS contiene cabecera BEGIN:VCALENDAR');
         $this->assert(str_contains($ics, 'BEGIN:VEVENT'), 'ICS contiene bloque BEGIN:VEVENT');
         $this->assert(str_contains($ics, 'SUMMARY:Reunion Ejecutiva de Prueba'), 'ICS contiene SUMMARY correcto');
+        $this->assert(str_contains($ics, 'asistente@miamiagency.com'), 'ICS contiene ATTENDEE con el correo del trabajador asignado');
+        $this->assert(str_contains($ics, 'elena.rostova@sothebysrealty.com'), 'ICS contiene ATTENDEE con el correo del cliente');
         $this->assert(str_contains($ics, 'END:VCALENDAR'), 'ICS contiene pie END:VCALENDAR');
         $this->assert(str_contains($ics, "\r\n"), 'ICS cumple con separadores de linea CRLF estandar RFC 5545');
+
+        // 3. Consulta en base de datos incluye datos del trabajador asignado
+        $model = new MeetingModel();
+        $all = $model->getAll();
+        $this->assert(!empty($all), 'MeetingModel::getAll() retorna reuniones');
+        $this->assert(array_key_exists('employee_name', $all[0]), 'getAll incluye campo employee_name');
+        $this->assert(array_key_exists('employee_email', $all[0]), 'getAll incluye campo employee_email');
     }
 
     /**

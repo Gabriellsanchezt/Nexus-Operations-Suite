@@ -14,9 +14,15 @@ class MeetingModel extends Model {
      */
     public function getAll(?string $fromDate = null): array {
         $sql = "
-            SELECT m.*, r.company_name, r.contact_person, r.phone AS realtor_phone
+            SELECT m.*,
+                   r.company_name, r.contact_person, r.email AS realtor_email, r.phone AS realtor_phone,
+                   e.full_name AS employee_name, u.email AS employee_email, e.phone AS employee_phone,
+                   roles.name AS employee_role
             FROM meetings m
             LEFT JOIN realtors r ON m.realtor_id = r.id
+            LEFT JOIN employees e ON m.employee_id = e.id
+            LEFT JOIN users u ON e.user_id = u.id
+            LEFT JOIN roles ON u.role_id = roles.id
         ";
         $params = [];
 
@@ -37,17 +43,18 @@ class MeetingModel extends Model {
      */
     public function create(array $data): int {
         $stmt = $this->db->prepare("
-            INSERT INTO meetings (title, realtor_id, meeting_date, meeting_time, duration_minutes, meeting_link, description, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'PROGRAMADA')
+            INSERT INTO meetings (title, realtor_id, employee_id, meeting_date, meeting_time, duration_minutes, meeting_link, description, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PROGRAMADA')
         ");
         $stmt->execute([
             trim($data['title']),
             !empty($data['realtor_id']) ? (int)$data['realtor_id'] : null,
+            !empty($data['employee_id']) ? (int)$data['employee_id'] : null,
             $data['meeting_date'],
             $data['meeting_time'],
             (int)($data['duration_minutes'] ?? 30),
-            trim($data['meeting_link'] ?? '') ?: null,
-            trim($data['description'] ?? '') ?: null
+            !empty($data['meeting_link']) ? trim($data['meeting_link']) : null,
+            !empty($data['description']) ? trim($data['description']) : null
         ]);
         return (int)$this->db->lastInsertId();
     }
@@ -62,20 +69,15 @@ class MeetingModel extends Model {
 
     /**
      * Construir enlace oficial para agregar a Google Calendar con 1 clic
-     * Activa notificaciones y alertas automáticas en el teléfono y correo del usuario
+     * Asigna a los asistentes (trabajador y cliente) mediante el parámetro oficial 'add'
+     * para que Google Calendar envíe la invitación y notificación al teléfono móvil
      */
     public static function buildGoogleCalendarUrl(array $meeting): string {
-        $date = str_replace('-', '', $meeting['meeting_date']);
-        $timeParts = explode(':', $meeting['meeting_time']);
-        $startHour = str_pad($timeParts[0] ?? '09', 2, '0', STR_PAD_LEFT);
-        $startMin = str_pad($timeParts[1] ?? '00', 2, '0', STR_PAD_LEFT);
-        $startSec = '00';
-
-        $duration = (int)($meeting['duration_minutes'] ?? 30);
         $startTimestamp = strtotime("{$meeting['meeting_date']} {$meeting['meeting_time']}");
+        $duration = (int)($meeting['duration_minutes'] ?? 30);
         $endTimestamp = $startTimestamp + ($duration * 60);
-        $endDateStr = date('Ymd\THis', $endTimestamp);
         $startDateStr = date('Ymd\THis', $startTimestamp);
+        $endDateStr = date('Ymd\THis', $endTimestamp);
 
         $title = $meeting['title'];
         if (!empty($meeting['company_name'])) {
@@ -83,19 +85,39 @@ class MeetingModel extends Model {
         }
 
         $details = $meeting['description'] ?? '';
-        if (!empty($meeting['meeting_link'])) {
-            $details .= "\n\nEnlace de Reunión (Meet/Zoom): " . $meeting['meeting_link'];
-        }
         $details .= "\n\nAgendado desde Nexus Operations Suite (Miami Luxury Media).";
+        if (!empty($meeting['employee_name']) && !empty($meeting['employee_email'])) {
+            $details .= "\nTrabajador Asignado: {$meeting['employee_name']} <{$meeting['employee_email']}>";
+        }
+        if (!empty($meeting['company_name'])) {
+            $details .= "\nCliente: {$meeting['company_name']}";
+            if (!empty($meeting['realtor_email'])) {
+                $details .= " <{$meeting['realtor_email']}>";
+            }
+        }
+
+        // Correos electrónicos a los que les llegará la invitación y alerta al móvil
+        $attendees = [];
+        if (!empty($meeting['employee_email'])) {
+            $attendees[] = trim($meeting['employee_email']);
+        }
+        if (!empty($meeting['realtor_email'])) {
+            $attendees[] = trim($meeting['realtor_email']);
+        }
 
         $params = [
             'action' => 'TEMPLATE',
             'text' => $title,
             'dates' => "{$startDateStr}/{$endDateStr}",
             'details' => $details,
-            'location' => $meeting['meeting_link'] ?? 'En línea / Miami',
+            'location' => !empty($meeting['company_name']) ? "Reunión con {$meeting['company_name']} - Miami, FL" : "Miami Luxury Media Ops",
             'sprop' => 'website:miami-agency-ops'
         ];
+
+        // Parámetro 'add' de Google Calendar para invitar directamente al trabajador y al cliente
+        if (!empty($attendees)) {
+            $params['add'] = implode(',', array_unique($attendees));
+        }
 
         return 'https://calendar.google.com/calendar/render?' . http_build_query($params);
     }
@@ -115,7 +137,17 @@ class MeetingModel extends Model {
 
         $title = addcslashes($meeting['title'], ",;\\");
         $desc = addcslashes($meeting['description'] ?? '', ",;\\");
-        $location = addcslashes($meeting['meeting_link'] ?? 'En línea', ",;\\");
+        $location = addcslashes(!empty($meeting['company_name']) ? "Reunión con {$meeting['company_name']}" : "Miami Luxury Media", ",;\\");
+
+        $attendeesIcs = "";
+        if (!empty($meeting['employee_email'])) {
+            $empName = !empty($meeting['employee_name']) ? addcslashes($meeting['employee_name'], ",;\\") : 'Trabajador Asignado';
+            $attendeesIcs .= "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN={$empName}:mailto:{$meeting['employee_email']}\r\n";
+        }
+        if (!empty($meeting['realtor_email'])) {
+            $realtorName = !empty($meeting['contact_person']) ? addcslashes($meeting['contact_person'], ",;\\") : 'Cliente';
+            $attendeesIcs .= "ATTENDEE;CUTYPE=INDIVIDUAL;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN={$realtorName}:mailto:{$meeting['realtor_email']}\r\n";
+        }
 
         return "BEGIN:VCALENDAR\r\n" .
                "VERSION:2.0\r\n" .
@@ -130,6 +162,7 @@ class MeetingModel extends Model {
                "SUMMARY:{$title}\r\n" .
                "DESCRIPTION:{$desc}\r\n" .
                "LOCATION:{$location}\r\n" .
+               $attendeesIcs .
                "STATUS:CONFIRMED\r\n" .
                "BEGIN:VALARM\r\n" .
                "TRIGGER:-PT15M\r\n" .

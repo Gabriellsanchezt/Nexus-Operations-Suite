@@ -285,6 +285,36 @@ class BlackBoxTestSuite {
         $this->assert($res['code'] === 200, 'GET /agenda responde HTTP 200');
         $this->assert(str_contains($res['body'], 'calendar.google.com/calendar/render'), 'La vista de Agenda contiene enlaces activos a Google Calendar');
         $this->assert(str_contains($res['body'], '/agenda/download-ics'), 'La vista de Agenda contiene botones para descarga de archivos .ics');
+
+        // Verificación de campos estrictos y ausencia de campos innecesarios
+        $this->assert(str_contains($res['body'], 'name="employee_id"'), 'El formulario de reunión incluye selector de trabajador asignado (employee_id)');
+        $this->assert(str_contains($res['body'], 'name="title"'), 'El formulario incluye campo title');
+        $this->assert(str_contains($res['body'], 'name="realtor_id"'), 'El formulario incluye campo realtor_id');
+        $this->assert(str_contains($res['body'], 'name="meeting_date"'), 'El formulario incluye campo meeting_date');
+        $this->assert(str_contains($res['body'], 'name="meeting_time"'), 'El formulario incluye campo meeting_time');
+        $this->assert(str_contains($res['body'], 'name="description"'), 'El formulario incluye campo description');
+        $this->assert(!str_contains($res['body'], 'name="duration_minutes"'), 'El formulario NO incluye selector de hora estimada/duración');
+        $this->assert(!str_contains($res['body'], 'name="meeting_link"'), 'El formulario NO incluye campo de link de Meet');
+
+        // Comprobación de asignación de correo institucional en la tabla
+        $this->assert(str_contains($res['body'], '@miamiagency.com'), 'La tabla de reuniones despliega el correo institucional del trabajador asignado');
+
+        // Registro de nueva reunión con trabajador asignado
+        $postMeeting = [
+            'title' => 'Reunión de Coordinación VIP',
+            'realtor_id' => 1,
+            'employee_id' => 2, // Valentina Rossi (asistente@miamiagency.com)
+            'meeting_date' => date('Y-m-d', strtotime('+3 days')),
+            'meeting_time' => '11:00',
+            'description' => 'Alineación de objetivos de campaña'
+        ];
+        $resStore = $this->request('/agenda/store', 'POST', $postMeeting);
+        $this->assert($resStore['code'] === 302, 'POST /agenda/store redirige exitosamente (HTTP 302)');
+
+        // Validar que la nueva reunión aparece en la agenda
+        $resAfter = $this->request('/agenda', 'GET');
+        $this->assert(str_contains($resAfter['body'], 'Reunión de Coordinación VIP'), 'La nueva reunión creada aparece en el listado');
+        $this->assert(str_contains($resAfter['body'], 'asistente@miamiagency.com'), 'La nueva reunión muestra el correo asignado del trabajador');
     }
 
     /**

@@ -173,9 +173,9 @@ class Database {
 
         // 10. Reuniones Agendadas
         $pdo->exec("
-            INSERT INTO meetings (id, title, realtor_id, meeting_date, meeting_time, duration_minutes, meeting_link, description, status) VALUES
-            (1, 'Revisión Estratégica Trimestral con Elena Rostova', 1, '2026-10-16', '10:00:00', 45, 'https://meet.google.com/abc-defg-hij', 'Alineación de lanzamientos audiovisuales en Brickell', 'PROGRAMADA'),
-            (2, 'Kickoff Campaña de Dron con Marcus Sterling', 2, '2026-10-17', '14:30:00', 30, 'https://meet.google.com/xyz-uvwx-rst', 'Coordinación logística de acceso a propiedad en South Beach', 'PROGRAMADA');
+            INSERT INTO meetings (id, title, realtor_id, employee_id, meeting_date, meeting_time, duration_minutes, meeting_link, description, status) VALUES
+            (1, 'Revisión Estratégica Trimestral con Elena Rostova', 1, 2, '2026-10-16', '10:00:00', 45, 'https://meet.google.com/abc-defg-hij', 'Alineación de lanzamientos audiovisuales en Brickell', 'PROGRAMADA'),
+            (2, 'Kickoff Campaña de Dron con Marcus Sterling', 2, 4, '2026-10-17', '14:30:00', 30, 'https://meet.google.com/xyz-uvwx-rst', 'Coordinación logística de acceso a propiedad en South Beach', 'PROGRAMADA');
         ");
     }
 }

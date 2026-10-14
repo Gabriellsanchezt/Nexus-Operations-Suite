@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS meetings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
     realtor_id INT NULL,
+    employee_id INT NULL,
     meeting_date DATE NOT NULL,
     meeting_time TIME NOT NULL,
     duration_minutes INT DEFAULT 30,
@@ -134,7 +135,9 @@ CREATE TABLE IF NOT EXISTS meetings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_meetings_date (meeting_date),
     INDEX idx_meetings_realtor (realtor_id),
-    CONSTRAINT fk_meetings_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE SET NULL
+    INDEX idx_meetings_employee (employee_id),
+    CONSTRAINT fk_meetings_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE SET NULL,
+    CONSTRAINT fk_meetings_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 10. Tareas y Actividades Audiovisuales

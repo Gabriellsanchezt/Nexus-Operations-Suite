@@ -3,14 +3,14 @@
         <h2 class="fw-bold mb-1">
             <i class="bi bi-calendar-check-fill text-primary me-2"></i>Agenda de Reuniones
         </h2>
-        <p class="text-muted mb-0">Coordinación de llamadas y citas operativas vinculadas con Google Calendar y notificaciones móviles</p>
+        <p class="text-muted mb-0">Coordinación de llamadas y citas operativas asignadas por trabajador y sincronizadas con Google Calendar y notificaciones móviles</p>
     </div>
     <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNewMeeting">
         <i class="bi bi-plus-lg me-1"></i> + Agendar Nueva Reunión
     </button>
 </div>
 
-<!-- Banner Explicativo de Sincronización Móvil -->
+<!-- Banner Explicativo de Sincronización Móvil y Asignación de Correo -->
 <div class="card border-0 shadow-sm mb-4 bg-primary bg-opacity-10 border-start border-primary border-4">
     <div class="card-body p-3">
         <div class="d-flex align-items-center gap-3">
@@ -18,9 +18,9 @@
                 <i class="bi bi-phone-vibrate-fill fs-4"></i>
             </div>
             <div>
-                <strong class="text-primary d-block">Sincronización Automática con tu Teléfono Móvil & Correo</strong>
+                <strong class="text-primary d-block">Sincronización con Correo y Teléfono Móvil por Trabajador</strong>
                 <p class="text-dark small mb-0">
-                    Al presionar el botón <strong>"Añadir a Google Calendar"</strong> en cualquier reunión, el evento se sincronizará automáticamente con tu cuenta de Google. Tu teléfono celular (Android o iPhone) y tu correo electrónico te notificarán con recordatorios antes de que comience la reunión.
+                    Cada reunión se asigna a un trabajador específico de la agencia. Al presionar <strong>"Google Calendar"</strong>, se abre el evento incluyendo automáticamente el correo asignado del trabajador y del cliente como invitados, enviándoles la notificación y recordatorio directo a su teléfono móvil.
                 </p>
             </div>
         </div>
@@ -41,7 +41,7 @@
             <div class="text-center py-5 text-muted">
                 <i class="bi bi-calendar2-x display-4 text-muted mb-3 d-block"></i>
                 <h5 class="fw-bold text-dark">No hay reuniones agendadas en este momento</h5>
-                <p class="text-muted small mb-3">Agenda una reunión para sincronizarla inmediatamente con tu calendario y recibir alertas en tu móvil.</p>
+                <p class="text-muted small mb-3">Agenda una reunión indicando el trabajador asignado para sincronizarla con su correo y móvil.</p>
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNewMeeting">
                     <i class="bi bi-plus-lg me-1"></i> Agendar Reunión
                 </button>
@@ -51,10 +51,10 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light small text-uppercase">
                         <tr>
-                            <th style="width: 170px;">Fecha & Hora</th>
+                            <th style="width: 170px;">Fecha & Inicio</th>
                             <th>Reunión / Propósito</th>
-                            <th>Cliente / Participante</th>
-                            <th>Enlace Virtual</th>
+                            <th>Cliente (Realtor)</th>
+                            <th>Trabajador Asignado (Correo Móvil)</th>
                             <th class="text-end">Sincronización Móvil</th>
                         </tr>
                     </thead>
@@ -70,7 +70,7 @@
                                         <i class="bi bi-calendar3 me-1"></i> <?= htmlspecialchars($m['meeting_date']) ?>
                                     </div>
                                     <span class="badge bg-dark font-monospace">
-                                        <i class="bi bi-clock me-1 text-warning"></i> <?= date('h:i A', $dt) ?> (<?= (int)$m['duration_minutes'] ?>m)
+                                        <i class="bi bi-clock me-1 text-warning"></i> <?= date('h:i A', $dt) ?>
                                     </span>
                                 </td>
 
@@ -83,32 +83,40 @@
 
                                 <td>
                                     <?php if (!empty($m['company_name'])): ?>
-                                        <strong><?= htmlspecialchars($m['company_name']) ?></strong>
-                                        <div class="small text-muted"><?= htmlspecialchars($m['contact_person']) ?> &bull; <?= htmlspecialchars($m['realtor_phone']) ?></div>
+                                        <strong class="text-dark d-block"><?= htmlspecialchars($m['company_name']) ?></strong>
+                                        <div class="small text-muted">
+                                            <?= htmlspecialchars($m['contact_person']) ?>
+                                            <?php if (!empty($m['realtor_email'])): ?>
+                                                &bull; <a href="mailto:<?= htmlspecialchars($m['realtor_email']) ?>" class="text-decoration-none text-muted"><i class="bi bi-envelope"></i> <?= htmlspecialchars($m['realtor_email']) ?></a>
+                                            <?php endif; ?>
+                                        </div>
                                     <?php else: ?>
                                         <span class="badge bg-light text-dark border">Reunión Interna de Agencia</span>
                                     <?php endif; ?>
                                 </td>
 
                                 <td>
-                                    <?php if (!empty($m['meeting_link'])): ?>
-                                        <a href="<?= htmlspecialchars($m['meeting_link']) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1">
-                                            <i class="bi bi-camera-video-fill"></i> Unirse a Llamada
-                                        </a>
+                                    <?php if (!empty($m['employee_name'])): ?>
+                                        <div class="fw-semibold text-dark"><?= htmlspecialchars($m['employee_name']) ?></div>
+                                        <div class="d-flex align-items-center gap-1 mt-1">
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace" style="font-size: 0.75rem;">
+                                                <i class="bi bi-envelope-at-fill me-1"></i><?= htmlspecialchars($m['employee_email'] ?? '') ?>
+                                            </span>
+                                        </div>
                                     <?php else: ?>
-                                        <span class="text-muted small">Sin enlace virtual</span>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border">Sin Asignar</span>
                                     <?php endif; ?>
                                 </td>
 
                                 <td class="text-end">
                                     <div class="btn-group shadow-sm">
-                                        <!-- Botón Google Calendar (Abre y notifica en el teléfono móvil) -->
-                                        <a href="<?= $m['google_calendar_url'] ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary fw-semibold" title="Sincronizar y recibir notificación en el teléfono">
+                                        <!-- Botón Google Calendar (Abre y notifica en el teléfono móvil del trabajador) -->
+                                        <a href="<?= $m['google_calendar_url'] ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary fw-semibold" title="Sincronizar y enviar notificación al correo/teléfono">
                                             <i class="bi bi-google me-1"></i> Google Calendar
                                         </a>
 
                                         <!-- Descargar archivo iCalendar (.ics) nativo -->
-                                        <a href="<?= url('/agenda/download-ics?id=' . $m['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Descargar archivo .ics para calendario">
+                                        <a href="<?= url('/agenda/download-ics?id=' . $m['id']) ?>" class="btn btn-sm btn-outline-secondary" title="Descargar archivo .ics con los correos de invitación">
                                             <i class="bi bi-download"></i>
                                         </a>
 
@@ -130,33 +138,50 @@
     </div>
 </div>
 
-<!-- MODAL NUEVA REUNIÓN -->
+<!-- MODAL NUEVA REUNIÓN (SOLO CAMPOS ESTRICTAMENTE REQUERIDOS: TÍTULO, CLIENTE, TRABAJADOR/CORREO, FECHA, HORA DE INICIO, DESCRIPCIÓN) -->
 <div class="modal fade" id="modalNewMeeting" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
             <form action="<?= url('/agenda/store') ?>" method="POST">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2 text-primary"></i>Agendar Reunión</h5>
+                <div class="modal-header bg-dark text-white border-bottom border-primary border-3">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2 text-primary"></i>Agendar Nueva Reunión</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
+                    <!-- 1. Título de la reunión -->
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Título de la Reunión *</label>
-                        <input type="text" name="title" class="form-control" required placeholder="Ej: Revisión de Estrategia Audiovisual con Elena">
+                        <input type="text" name="title" class="form-control" required placeholder="Ej: Revisión de Estrategia Audiovisual">
                     </div>
 
+                    <!-- 2. Cliente Realtor -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Cliente Realtor Asociado (Opcional)</label>
+                        <label class="form-label small fw-semibold">Cliente (Realtor)</label>
                         <select name="realtor_id" class="form-select">
-                            <option value="">-- Ninguno (Reunión Interna de Equipo) --</option>
+                            <option value="">-- Ninguno (Reunión Interna de Agencia) --</option>
                             <?php foreach ($realtors as $rel): ?>
                                 <option value="<?= $rel['id'] ?>">
-                                    <?= htmlspecialchars($rel['company_name']) ?> (<?= htmlspecialchars($rel['contact_person']) ?>)
+                                    <?= htmlspecialchars($rel['company_name']) ?> &mdash; <?= htmlspecialchars($rel['contact_person']) ?> (<?= htmlspecialchars($rel['email']) ?>)
                                 </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
 
+                    <!-- 3. Trabajador Asignado (Correo al que le tiene que llegar la notificación al teléfono móvil) -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Trabajador Asignado (Correo a Notificar en Móvil) *</label>
+                        <select name="employee_id" class="form-select" required>
+                            <option value="">-- Seleccionar Trabajador Responsable --</option>
+                            <?php foreach ($employees as $emp): ?>
+                                <option value="<?= $emp['employee_id'] ?>">
+                                    <?= htmlspecialchars($emp['full_name']) ?> &mdash; <?= htmlspecialchars($emp['email']) ?> (<?= htmlspecialchars($emp['role_name']) ?>)
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <small class="text-muted" style="font-size: 0.72rem;">A este correo institucional se enviará la invitación y notificación de Google Calendar para su teléfono móvil.</small>
+                    </div>
+
+                    <!-- 4. Fecha y Hora de Inicio -->
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Fecha *</label>
@@ -168,34 +193,18 @@
                         </div>
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Duración Estimada</label>
-                            <select name="duration_minutes" class="form-select">
-                                <option value="15">15 minutos</option>
-                                <option value="30" selected>30 minutos</option>
-                                <option value="45">45 minutos</option>
-                                <option value="60">1 hora</option>
-                                <option value="90">1 hora y media</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-semibold">Link de Google Meet / Zoom</label>
-                            <input type="url" name="meeting_link" class="form-control" placeholder="https://meet.google.com/...">
-                        </div>
-                    </div>
-
+                    <!-- 5. Descripción -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Descripción / Agenda de Temas (Opcional)</label>
-                        <textarea name="description" class="form-control" rows="2" placeholder="Puntos a tratar en la llamada..."></textarea>
+                        <label class="form-label small fw-semibold">Descripción</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Puntos a tratar y objetivo de la reunión..."></textarea>
                     </div>
 
                     <div class="p-3 bg-light rounded border small text-muted">
-                        <i class="bi bi-bell-fill text-warning me-1"></i>
-                        <strong>Notificación Móvil:</strong> Al guardar, podrás sincronizarla en 1 clic con Google Calendar para que tu teléfono te avise antes de la reunión.
+                        <i class="bi bi-phone-fill text-primary me-1"></i>
+                        <strong>Sincronización Automática:</strong> Al guardar la reunión y pulsar <strong>Google Calendar</strong>, el evento se cargará con la cuenta de correo del trabajador y del cliente para que su teléfono celular le notifique con anticipación.
                     </div>
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary fw-semibold"><i class="bi bi-calendar-check me-1"></i> Guardar en Agenda</button>
                 </div>
