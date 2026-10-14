@@ -2,10 +2,10 @@
     <!-- Encabezado Principal de Pantalla Amplia -->
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <div>
-            <h2 class="fw-bold mb-1">
-                <i class="bi bi-envelope-paper-heart-fill text-danger me-2"></i>Cronograma & Calendario de Email Marketing
-            </h2>
-            <p class="text-muted mb-0">Programación, cronograma y fechas estipuladas de subida y envío de emails por cada Realtor</p>
+            <h1 class="module-title">
+                <i class="bi bi-envelope-paper-heart-fill text-danger"></i> Email Marketing
+            </h1>
+            <p class="module-subtitle">Cronograma y fechas de envío de emails por cada Realtor</p>
         </div>
         <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNewEmailCampaign">
             <i class="bi bi-calendar-plus-fill me-1"></i> + Programar Email para Realtor
@@ -175,8 +175,11 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Cliente Realtor *</label>
-                        <select name="realtor_id" class="form-select" required>
+                        <label class="form-label small fw-semibold">Cliente Realtor</label>
+                        <select name="realtor_id" class="form-select" required
+                                data-purpose="Cliente Realtor destinatario de la campaña de correo."
+                                data-error-msg="Selecciona el cliente Realtor para la campaña."
+                                data-success-msg="Cliente vinculado para la campaña de email.">
                             <option value="">-- Seleccionar Realtor --</option>
                             <?php foreach ($realtors as $rel): ?>
                                 <option value="<?= $rel['id'] ?>" <?= ($selectedRealtorId === (int)$rel['id']) ? 'selected' : '' ?>>
@@ -187,18 +190,26 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Título o Asunto de la Campaña *</label>
-                        <input type="text" name="title" class="form-control" required placeholder="Ej: Newsletter Mensual: Oportunidades Brickell Pre-construcción">
+                        <label class="form-label small fw-semibold">Título o Asunto de la Campaña</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Ej: Newsletter Mensual: Oportunidades Brickell Pre-construcción"
+                               data-purpose="Asunto principal o tema del envío de correo."
+                               data-error-msg="Ingresa el asunto o título de la campaña."
+                               data-success-msg="Asunto de la campaña registrado.">
                     </div>
 
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Fecha Estipulada *</label>
-                            <input type="date" name="scheduled_date" class="form-control" required value="<?= date('Y-m-d') ?>">
+                            <label class="form-label small fw-semibold">Fecha Estipulada</label>
+                            <input type="date" name="scheduled_date" class="form-control" required value="<?= date('Y-m-d') ?>"
+                                   data-purpose="Fecha límite estipulada para la subida y envío."
+                                   data-error-msg="Indica la fecha programada para el envío."
+                                   data-success-msg="Fecha de envío agendada.">
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold">Estado Inicial</label>
-                            <select name="status" class="form-select">
+                            <select name="status" class="form-select"
+                                    data-purpose="Fase en la que inicia la campaña en el cronograma."
+                                    data-success-msg="Estado inicial configurado.">
                                 <option value="PROGRAMADO">Programado</option>
                                 <option value="SUBIDO">Subido</option>
                                 <option value="ENVIADO">Enviado</option>
@@ -207,8 +218,10 @@
                     </div>
 
                     <div class="mb-0">
-                        <label class="form-label small fw-semibold">Notas / Indicaciones del Contenido (Opcional)</label>
-                        <textarea name="notes" class="form-control" rows="3" placeholder="Público objetivo, enlaces a piezas o requisitos específicos del Realtor..."></textarea>
+                        <label class="form-label small fw-semibold">Notas / Indicaciones del Contenido</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Público objetivo, enlaces a piezas o requisitos específicos del Realtor..."
+                                  data-purpose="Opcional. Especificaciones técnicas, enlaces a creatividades o lista de distribución."
+                                  data-success-msg="Indicaciones registradas."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

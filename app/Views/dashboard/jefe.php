@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-primary me-2"></i>Dashboard de Dirección General</h2>
-        <p class="text-muted mb-0">Control integral de producción audiovisual, contratos y cartera de Realtors en Miami</p>
+        <h1 class="module-title"><i class="bi bi-speedometer2 text-primary"></i> Dashboard General</h1>
+        <p class="module-subtitle">Supervisión integral de operaciones y producción audiovisual</p>
     </div>
     <div class="d-flex gap-2">
         <a href="<?= url('/reports') ?>" class="btn btn-outline-dark fw-semibold">

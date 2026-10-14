@@ -1,17 +1,17 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1">
+        <h1 class="module-title">
             <?php if ($activeFilter === 'APROBADA'): ?>
-                <i class="bi bi-patch-check-fill text-success me-2"></i>Producción Audiovisual - Actividades Culminadas & Aprobadas
+                <i class="bi bi-patch-check-fill text-success"></i> Producción Concluida
             <?php else: ?>
-                <i class="bi bi-kanban text-primary me-2"></i>Tablero de Producción Audiovisual
+                <i class="bi bi-kanban text-primary"></i> Producción Audiovisual
             <?php endif; ?>
-        </h2>
-        <p class="text-muted mb-0">
+        </h1>
+        <p class="module-subtitle">
             <?php if ($activeFilter === 'APROBADA'): ?>
-                Historial oficial de producciones terminadas, entregables aprobados y feedback directivo
+                Historial de actividades concluidas y entregables aprobados
             <?php else: ?>
-                Supervisión general, canalización de rodajes y revisión de entregables creativos
+                Supervisión de rodajes, canales y entregables creativos
             <?php endif; ?>
         </p>
     </div>

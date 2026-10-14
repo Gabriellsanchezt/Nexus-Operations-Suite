@@ -1,9 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1">
-            <i class="bi bi-graph-up-arrow text-primary me-2"></i>Reportes de Rendimiento & Productividad
-        </h2>
-        <p class="text-muted mb-0">Métricas operativas consolidadas exclusivamente para períodos de 15 y 30 días</p>
+        <h1 class="module-title">
+            <i class="bi bi-graph-up-arrow text-primary"></i> Reportes Operativos
+        </h1>
+        <p class="module-subtitle">Métricas consolidadas de rendimiento y productividad a 15 y 30 días</p>
     </div>
     <div class="d-flex gap-2 align-items-center flex-wrap">
         <!-- Filtro Exclusivo de 15 / 30 Días -->

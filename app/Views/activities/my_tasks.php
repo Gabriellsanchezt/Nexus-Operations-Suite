@@ -1,10 +1,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1">
-            <i class="bi bi-play-circle-fill text-primary me-2"></i>
-            <?= ($activeFilter === 'APROBADA') ? 'Mis Tareas Audiovisuales Culminadas & Aprobadas' : 'Mis Tareas Audiovisuales' ?>
-        </h2>
-        <p class="text-muted mb-0">Gestión de entregables creativos, subida de links (Frame.io/Drive) y supervisión de aprobaciones del Jefe</p>
+        <h1 class="module-title">
+            <i class="bi bi-play-circle-fill text-primary"></i>
+            <?= ($activeFilter === 'APROBADA') ? 'Mis Tareas Aprobadas' : 'Mis Tareas' ?>
+        </h1>
+        <p class="module-subtitle">Entregables asignados, enlaces creativos y estado de revisión</p>
     </div>
 </div>
 

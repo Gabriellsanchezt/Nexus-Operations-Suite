@@ -1,8 +1,8 @@
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-            <h2 class="fw-bold mb-1">¡Hola, <?= htmlspecialchars($user['full_name']) ?>!</h2>
-            <p class="text-muted mb-0">Espacio de trabajo operativo &bull; <span class="badge bg-dark"><?= htmlspecialchars(\Config\Auth::getRoleLabel()) ?></span></p>
+            <h1 class="module-title"><i class="bi bi-person-workspace text-primary"></i> Panel Operativo</h1>
+            <p class="module-subtitle">Espacio de trabajo y asignaciones de <?= htmlspecialchars($user['full_name']) ?> &bull; <span class="badge bg-dark"><?= htmlspecialchars(\Config\Auth::getRoleLabel()) ?></span></p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="<?= url('/activities/my-tasks') ?>" class="btn btn-primary fw-semibold">

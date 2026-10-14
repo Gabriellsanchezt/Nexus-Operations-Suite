@@ -1,9 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1">
-            <i class="bi bi-people-fill text-dark me-2"></i>Gestión de Personal, Trabajadores y Roles
-        </h2>
-        <p class="text-muted mb-0">Control total para Dirección General: Creación, modificación y suspensión de trabajadores, roles y cargos operativos</p>
+        <h1 class="module-title">
+            <i class="bi bi-people-fill text-primary"></i> Gestión de Equipo
+        </h1>
+        <p class="module-subtitle">Administración de personal, roles operativos y especialidades</p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <button type="button" class="btn btn-outline-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#modalNewRole">

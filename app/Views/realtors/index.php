@@ -1,7 +1,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-building text-primary me-2"></i>Gestión de Clientes Realtors (Miami)</h2>
-        <p class="text-muted mb-0">Directorio de agentes inmobiliarios, agencias y brokerages asociados en el Condado de Miami-Dade</p>
+        <h1 class="module-title"><i class="bi bi-building text-primary"></i> Clientes Realtors</h1>
+        <p class="module-subtitle">Directorio y gestión operativa de clientes inmobiliarios en Miami</p>
     </div>
     <button type="button" class="btn btn-primary fw-semibold" data-bs-toggle="modal" data-bs-target="#modalNewRealtor">
         <i class="bi bi-plus-lg me-1"></i> + Nuevo Realtor
@@ -223,26 +223,40 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Inmobiliaria / Brokerage *</label>
-                        <input type="text" name="company_name" class="form-control" required placeholder="Ej: Douglas Elliman Real Estate">
+                        <label class="form-label small fw-semibold">Inmobiliaria / Brokerage</label>
+                        <input type="text" name="company_name" class="form-control" required placeholder="Ej: Douglas Elliman Real Estate"
+                               data-purpose="Nombre de la agencia inmobiliaria o brokerage en Miami."
+                               data-error-msg="Ingresa el nombre de la inmobiliaria o broker."
+                               data-success-msg="Nombre de la inmobiliaria registrado.">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Nombre del Agente / Contacto *</label>
-                        <input type="text" name="contact_person" class="form-control" required placeholder="Ej: Jonathan Meyer">
+                        <label class="form-label small fw-semibold">Nombre del Agente / Contacto</label>
+                        <input type="text" name="contact_person" class="form-control" required placeholder="Ej: Jonathan Meyer"
+                               data-purpose="Agente o contacto principal de la cuenta."
+                               data-error-msg="Ingresa el nombre del agente o contacto directo."
+                               data-success-msg="Contacto registrado.">
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Teléfono *</label>
-                            <input type="text" name="phone" class="form-control" required placeholder="+1 (305) 555-0100">
+                            <label class="form-label small fw-semibold">Teléfono</label>
+                            <input type="text" name="phone" class="form-control" required placeholder="+1 (305) 555-0100"
+                                   data-purpose="Teléfono de contacto. Se utilizará para llamadas y recordatorios de citas."
+                                   data-error-msg="Indica el teléfono de contacto del cliente."
+                                   data-success-msg="Teléfono listo para alertas de agenda.">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Email Corporativo *</label>
-                            <input type="email" name="email" class="form-control" required placeholder="agente@elliman.com">
+                            <label class="form-label small fw-semibold">Email Corporativo</label>
+                            <input type="email" name="email" class="form-control" required placeholder="agente@elliman.com"
+                                   data-purpose="Correo oficial para comunicaciones y notificaciones de agenda."
+                                   data-error-msg="Introduce un correo corporativo válido."
+                                   data-success-msg="Correo corporativo válido.">
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Zona Primaria en Miami *</label>
-                        <select name="miami_zone" class="form-select" required>
+                        <label class="form-label small fw-semibold">Zona Primaria en Miami</label>
+                        <select name="miami_zone" class="form-select" required
+                                data-purpose="Ubicación operativa en Miami para rodajes y cobertura."
+                                data-success-msg="Zona geográfica seleccionada.">
                             <?php foreach ($zones as $z): ?>
                                 <option value="<?= htmlspecialchars($z) ?>"><?= htmlspecialchars($z) ?></option>
                             <?php endforeach; ?>

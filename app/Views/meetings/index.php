@@ -1,9 +1,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1">
-            <i class="bi bi-calendar-check-fill text-primary me-2"></i>Agenda de Reuniones
-        </h2>
-        <p class="text-muted mb-0">Coordinación de llamadas y citas operativas asignadas por trabajador y sincronizadas con Google Calendar y notificaciones móviles</p>
+        <h1 class="module-title">
+            <i class="bi bi-calendar-check-fill text-primary"></i> Agenda de Reuniones
+        </h1>
+        <p class="module-subtitle">Coordinación de reuniones operativas y recordatorios sincronizados</p>
     </div>
     <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNewMeeting">
         <i class="bi bi-plus-lg me-1"></i> + Agendar Nueva Reunión
@@ -150,14 +150,19 @@
                 <div class="modal-body p-4">
                     <!-- 1. Título de la reunión -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Título de la Reunión *</label>
-                        <input type="text" name="title" class="form-control" required placeholder="Ej: Revisión de Estrategia Audiovisual">
+                        <label class="form-label small fw-semibold">Título de la Reunión</label>
+                        <input type="text" name="title" class="form-control" required placeholder="Ej: Revisión de Estrategia Audiovisual"
+                               data-purpose="Asunto principal. Se visualizará en el título de la alarma en tu teléfono móvil."
+                               data-error-msg="Ingresa el título o motivo de la reunión."
+                               data-success-msg="Título listo. Se guardará en la alarma de tu calendario.">
                     </div>
 
                     <!-- 2. Cliente Realtor -->
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Cliente (Realtor)</label>
-                        <select name="realtor_id" class="form-select">
+                        <select name="realtor_id" class="form-select"
+                                data-purpose="Opcional. Al seleccionar un Realtor, sus teléfonos de contacto y correo se añadirán al cuerpo de tu alarma para llamarle."
+                                data-success-msg="Cliente vinculado. Sus números de contacto se incluirán en tu recordatorio.">
                             <option value="">-- Ninguno (Reunión Interna de Agencia) --</option>
                             <?php foreach ($realtors as $rel): ?>
                                 <option value="<?= $rel['id'] ?>">
@@ -169,8 +174,11 @@
 
                     <!-- 3. Trabajador Asignado (Correo al que se asociará la reunión) -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Trabajador Asignado (Responsable de la Reunión) *</label>
-                        <select name="employee_id" class="form-select" required>
+                        <label class="form-label small fw-semibold">Trabajador Asignado (Responsable de la Reunión)</label>
+                        <select name="employee_id" class="form-select" required
+                                data-purpose="Colaborador responsable. Sus datos de contacto se incorporarán a tu alarma para llamarle y recordarle la cita."
+                                data-error-msg="Selecciona al trabajador de la agencia responsable de la reunión."
+                                data-success-msg="Trabajador asignado. Sus números corporativos se incluirán en tu alarma.">
                             <option value="">-- Seleccionar Trabajador Responsable --</option>
                             <?php foreach ($employees as $emp): ?>
                                 <option value="<?= $emp['employee_id'] ?>">
@@ -184,19 +192,27 @@
                     <!-- 4. Fecha y Hora de Inicio -->
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Fecha *</label>
-                            <input type="date" name="meeting_date" class="form-control" required value="<?= date('Y-m-d') ?>">
+                            <label class="form-label small fw-semibold">Fecha</label>
+                            <input type="date" name="meeting_date" class="form-control" required value="<?= date('Y-m-d') ?>"
+                                   data-purpose="Fecha de la reunión. Programa el día en que tu teléfono activará el recordatorio."
+                                   data-error-msg="Selecciona la fecha de la reunión."
+                                   data-success-msg="Fecha configurada para la activación de la alarma.">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Hora de Inicio *</label>
-                            <input type="time" name="meeting_time" class="form-control" required value="10:00">
+                            <label class="form-label small fw-semibold">Hora de Inicio</label>
+                            <input type="time" name="meeting_time" class="form-control" required value="10:00"
+                                   data-purpose="Hora de inicio. Tu teléfono sonará con alarmas previas a 30m y 15m."
+                                   data-error-msg="Indica la hora de inicio de la reunión."
+                                   data-success-msg="Hora configurada con alertas sonoras anticipadas.">
                         </div>
                     </div>
 
                     <!-- 5. Descripción -->
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Descripción</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="Puntos a tratar y objetivo de la reunión..."></textarea>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Puntos a tratar y objetivo de la reunión..."
+                                  data-purpose="Opcional. Notas o temas clave que verás al abrir el recordatorio en tu teléfono."
+                                  data-success-msg="Descripción registrada; visible en el cuerpo de la cita."></textarea>
                     </div>
 
                     <div class="p-3 bg-light rounded border small text-muted">

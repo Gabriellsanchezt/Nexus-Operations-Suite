@@ -1,8 +1,8 @@
 <!-- Almacén de Contratos Finales (PDFs Concluidos) -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-pdf-fill text-danger me-2"></i>Almacén de Contratos Finales</h2>
-        <p class="text-muted mb-0">Repositorio centralizado de documentos contractuales concluidos (PDF) asociados a cada Realtor</p>
+        <h1 class="module-title"><i class="bi bi-file-earmark-pdf-fill text-danger"></i> Contratos Finales</h1>
+        <p class="module-subtitle">Repositorio de documentos contractuales concluidos en PDF por Realtor</p>
     </div>
     <button type="button" class="btn btn-primary fw-semibold shadow-sm" data-bs-toggle="modal" data-bs-target="#modalUploadContract">
         <i class="bi bi-cloud-arrow-up-fill me-1"></i> + Subir Contrato Concluido (PDF)
@@ -173,8 +173,11 @@
                 </div>
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Asociar a Cliente Realtor *</label>
-                        <select name="realtor_id" class="form-select" required>
+                        <label class="form-label small fw-semibold">Asociar a Cliente Realtor</label>
+                        <select name="realtor_id" class="form-select" required
+                                data-purpose="Cliente Realtor titular del contrato legal."
+                                data-error-msg="Selecciona el cliente Realtor al que corresponde el contrato."
+                                data-success-msg="Cliente Realtor asociado correctamente.">
                             <option value="">-- Seleccionar Realtor --</option>
                             <?php foreach ($realtors as $rel): ?>
                                 <option value="<?= $rel['id'] ?>" <?= ($selectedRealtorId === (int)$rel['id']) ? 'selected' : '' ?>>
@@ -185,19 +188,27 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Título o Identificador del Contrato *</label>
-                        <input type="text" name="contract_title" class="form-control" required placeholder="Ej: Acuerdo Anual de Producción Audiovisual 2026">
+                        <label class="form-label small fw-semibold">Título o Identificador del Contrato</label>
+                        <input type="text" name="contract_title" class="form-control" required placeholder="Ej: Acuerdo Anual de Producción Audiovisual 2026"
+                               data-purpose="Nombre descriptivo para identificar el documento en el repositorio."
+                               data-error-msg="Ingresa el título o identificador del contrato."
+                               data-success-msg="Título del contrato registrado.">
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Adjuntar Archivo Concluido (PDF) *</label>
-                        <input type="file" name="contract_pdf" class="form-control" accept=".pdf,application/pdf" required>
+                        <label class="form-label small fw-semibold">Adjuntar Archivo Concluido (PDF)</label>
+                        <input type="file" name="contract_pdf" class="form-control" accept=".pdf,application/pdf" required
+                               data-purpose="Documento digitalizado firmado en formato PDF."
+                               data-error-msg="Debes adjuntar un archivo en formato PDF."
+                               data-success-msg="Archivo PDF seleccionado listo para almacenar.">
                         <div class="form-text small">Solo se admiten archivos en formato .PDF concluidos legalmente.</div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Notas u Observaciones Operativas (Opcional)</label>
-                        <textarea name="notes" class="form-control" rows="2" placeholder="Detalles relevantes sobre el alcance o firma..."></textarea>
+                        <label class="form-label small fw-semibold">Notas u Observaciones Operativas</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Detalles relevantes sobre el alcance o firma..."
+                                  data-purpose="Opcional. Observaciones sobre cláusulas, vigencia o alcance del contrato."
+                                  data-success-msg="Observaciones registradas."></textarea>
                     </div>
 
                     <div class="p-3 bg-light rounded border text-muted small">

@@ -602,3 +602,261 @@ async function apiRequest(url, method = 'POST', data = {}) {
     };
 })();
 
+/**
+ * =========================================================================
+ * MOTOR DE VALIDACIÓN EN TIEMPO REAL CON GUÍA EXPLICATIVA DINÁMICA
+ * =========================================================================
+ * Proporciona validación interactiva inmediata en cada campo mientras el
+ * usuario escribe o selecciona, explicando claramente qué campos debe rellenar,
+ * por qué son requeridos y cómo los procesa el sistema en tiempo real.
+ */
+(function initRealtimeFormValidationEngine() {
+    function setupForm(form) {
+        if (!form || form.dataset.realtimeInitialized === 'true') return;
+        form.dataset.realtimeInitialized = 'true';
+
+        // Encontrar campos interactivos
+        const fields = Array.from(form.querySelectorAll('input:not([type="hidden"]), select, textarea'));
+        if (fields.length === 0) return;
+
+        const requiredFields = fields.filter(f => f.hasAttribute('required'));
+        
+        // Crear o buscar tarjeta de progreso en tiempo real
+        let statusCard = form.querySelector('.realtime-validation-card');
+        let progressFill = null;
+        let statusText = null;
+        let badgeState = null;
+
+        const modalBody = form.querySelector('.modal-body') || form;
+        if (!statusCard && requiredFields.length > 0) {
+            statusCard = document.createElement('div');
+            statusCard.className = 'realtime-validation-card';
+            statusCard.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <span class="small fw-bold text-dark">
+                        <i class="bi bi-shield-check text-primary me-1"></i> Asistente de Validación en Tiempo Real
+                    </span>
+                    <span class="badge bg-secondary realtime-badge-state" style="font-size: 0.7rem;">Incompleto</span>
+                </div>
+                <div class="small text-muted realtime-status-text" style="font-size: 0.74rem;">
+                    Por favor completa los campos obligatorios señalados para habilitar el registro.
+                </div>
+                <div class="realtime-progress-bar">
+                    <div class="realtime-progress-bar-fill" style="width: 0%;"></div>
+                </div>
+            `;
+            modalBody.insertBefore(statusCard, modalBody.firstChild);
+        }
+
+        if (statusCard) {
+            progressFill = statusCard.querySelector('.realtime-progress-bar-fill');
+            statusText = statusCard.querySelector('.realtime-status-text');
+            badgeState = statusCard.querySelector('.realtime-badge-state');
+        }
+
+        // Configurar cada campo
+        fields.forEach(field => {
+            const isReq = field.hasAttribute('required');
+            const label = form.querySelector(`label[for="${field.id}"]`) || field.closest('.mb-3, .col-6, .col-md-6, .field-wrapper')?.querySelector('label');
+            
+            // Añadir badge si el label no lo tiene
+            if (label && !label.querySelector('.field-requirement-badge')) {
+                const badge = document.createElement('span');
+                badge.className = `field-requirement-badge ${isReq ? 'badge-required' : 'badge-optional'}`;
+                badge.textContent = isReq ? 'Obligatorio' : 'Opcional';
+                label.appendChild(badge);
+            }
+
+            // Crear contenedor de feedback en vivo
+            let feedbackEl = field.parentNode.querySelector('.field-live-feedback');
+            if (!feedbackEl) {
+                feedbackEl = document.createElement('div');
+                feedbackEl.className = 'field-live-feedback feedback-hint';
+                field.parentNode.appendChild(feedbackEl);
+            }
+
+            // Obtener texto explicativo inicial
+            const purposeText = field.dataset.purpose || field.getAttribute('placeholder') || '';
+            const helpSmall = field.parentNode.querySelector('small.text-muted');
+            const initialHelp = helpSmall ? helpSmall.textContent.trim() : (purposeText ? purposeText : '');
+            
+            if (helpSmall) {
+                helpSmall.style.display = 'none'; // Reemplazado por el feedback dinámico
+            }
+
+            function validateField(showErrors = true) {
+                const val = (field.value || '').trim();
+                let isValid = true;
+                let msg = '';
+
+                if (isReq && val === '') {
+                    isValid = false;
+                    msg = field.dataset.errorMsg || 'Este campo es obligatorio para continuar.';
+                } else if (field.type === 'email' && val !== '') {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(val)) {
+                        isValid = false;
+                        msg = 'Introduce una dirección de correo válida (ejemplo: usuario@miamiagency.com).';
+                    }
+                } else if (field.type === 'file' && isReq) {
+                    if (!field.files || field.files.length === 0) {
+                        isValid = false;
+                        msg = 'Debes adjuntar el archivo requerido para guardar.';
+                    }
+                }
+
+                if (!showErrors && val === '') {
+                    field.classList.remove('is-valid', 'is-invalid');
+                    feedbackEl.className = 'field-live-feedback feedback-hint';
+                    feedbackEl.innerHTML = initialHelp ? `<i class="bi bi-info-circle text-muted"></i> ${initialHelp}` : '';
+                    return isValid;
+                }
+
+                if (isValid) {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                    feedbackEl.className = 'field-live-feedback feedback-valid';
+                    const successNote = field.dataset.successMsg || (initialHelp || 'Completado correctamente.');
+                    feedbackEl.innerHTML = `<i class="bi bi-check-circle-fill text-success"></i> ${successNote}`;
+                } else {
+                    field.classList.remove('is-valid');
+                    field.classList.add('is-invalid');
+                    feedbackEl.className = 'field-live-feedback feedback-invalid';
+                    feedbackEl.innerHTML = `<i class="bi bi-exclamation-circle-fill text-danger"></i> ${msg}`;
+                }
+
+                return isValid;
+            }
+
+            // Escuchar eventos en tiempo real
+            field.addEventListener('input', () => {
+                validateField(true);
+                updateFormProgress();
+            });
+            field.addEventListener('change', () => {
+                validateField(true);
+                updateFormProgress();
+            });
+            field.addEventListener('focus', () => {
+                if (!field.classList.contains('is-valid') && !field.classList.contains('is-invalid')) {
+                    feedbackEl.className = 'field-live-feedback feedback-hint';
+                    feedbackEl.innerHTML = initialHelp ? `<i class="bi bi-arrow-right-circle text-primary"></i> ${initialHelp}` : '';
+                }
+            });
+            field.addEventListener('blur', () => {
+                if (field.value.trim() !== '' || isReq) {
+                    validateField(true);
+                    updateFormProgress();
+                }
+            });
+
+            // Establecer feedback inicial sutil
+            if (initialHelp) {
+                feedbackEl.innerHTML = `<i class="bi bi-info-circle text-muted"></i> ${initialHelp}`;
+            }
+        });
+
+        function updateFormProgress() {
+            if (requiredFields.length === 0) return true;
+
+            let completed = 0;
+            requiredFields.forEach(f => {
+                const v = (f.value || '').trim();
+                let valid = (v !== '');
+                if (f.type === 'email' && valid) {
+                    valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+                } else if (f.type === 'file' && valid) {
+                    valid = (f.files && f.files.length > 0);
+                }
+                if (valid) completed++;
+            });
+
+            const pct = Math.round((completed / requiredFields.length) * 100);
+
+            if (progressFill) {
+                progressFill.style.width = `${pct}%`;
+                if (pct === 100) {
+                    progressFill.classList.add('complete');
+                } else {
+                    progressFill.classList.remove('complete');
+                }
+            }
+
+            if (statusCard && statusText && badgeState) {
+                if (pct === 100) {
+                    statusCard.classList.add('ready');
+                    badgeState.className = 'badge bg-success';
+                    badgeState.innerHTML = '<i class="bi bi-check-lg me-1"></i> Formulario Listo';
+                    statusText.textContent = 'Todos los campos obligatorios han sido completados correctamente. Puedes guardar.';
+                } else {
+                    statusCard.classList.remove('ready');
+                    badgeState.className = 'badge bg-warning text-dark';
+                    badgeState.textContent = `${completed} de ${requiredFields.length} Obligatorios (${pct}%)`;
+                    statusText.textContent = `Faltan ${requiredFields.length - completed} campo(s) obligatorio(s) por completar.`;
+                }
+            }
+
+            return completed === requiredFields.length;
+        }
+
+        // Manejar envío del formulario con verificación en tiempo real
+        form.addEventListener('submit', (e) => {
+            let allValid = true;
+            let firstInvalid = null;
+
+            fields.forEach(f => {
+                const isReq = f.hasAttribute('required');
+                const v = (f.value || '').trim();
+                let fieldValid = true;
+
+                if (isReq && v === '') {
+                    fieldValid = false;
+                } else if (f.type === 'email' && v !== '') {
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) fieldValid = false;
+                }
+
+                if (!fieldValid) {
+                    allValid = false;
+                    f.classList.add('is-invalid');
+                    f.classList.remove('is-valid');
+                    if (!firstInvalid) firstInvalid = f;
+                }
+            });
+
+            if (!allValid) {
+                e.preventDefault();
+                updateFormProgress();
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+
+        // Inicializar progreso inicial silenciosamente
+        updateFormProgress();
+    }
+
+    // Inicializar en todos los formularios de modales y formularios con data-realtime
+    function scanAndInit() {
+        document.querySelectorAll('.modal form, form[data-realtime="true"]').forEach(setupForm);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', scanAndInit);
+    } else {
+        scanAndInit();
+    }
+
+    // Re-escanear cuando se abre cualquier modal de Bootstrap
+    document.addEventListener('show.bs.modal', (e) => {
+        const modal = e.target;
+        if (modal) {
+            modal.querySelectorAll('form').forEach(setupForm);
+        }
+    });
+
+    window.initRealtimeFormValidation = scanAndInit;
+})();
+
+

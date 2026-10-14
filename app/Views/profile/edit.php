@@ -1,8 +1,8 @@
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-person-gear text-primary me-2"></i>Editar Perfil de Usuario</h2>
-            <p class="text-muted mb-0">Actualiza tus datos personales de contacto y cambia tu contraseña de acceso si es necesario</p>
+            <h1 class="module-title"><i class="bi bi-person-gear text-primary"></i> Perfil de Usuario</h1>
+            <p class="module-subtitle">Actualización de datos de contacto y credenciales de acceso</p>
         </div>
         <div>
             <a href="<?= url('/dashboard') ?>" class="btn btn-outline-secondary">
