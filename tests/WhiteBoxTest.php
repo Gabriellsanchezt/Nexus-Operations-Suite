@@ -52,6 +52,7 @@ class WhiteBoxTestSuite {
         $this->testContractModelIntegrity();
         $this->testRealtorModelProjectsIsolation();
         $this->testIdleSessionSecurityAndActivityTracking();
+        $this->testUtf8EncodingAndAccentsIntegrity();
 
         $elapsed = round(microtime(true) - $startTime, 4);
 
@@ -371,6 +372,47 @@ class WhiteBoxTestSuite {
 
         // Limpiar sesión de pruebas
         Auth::logout();
+    }
+
+    /**
+     * 11. Integridad de Codificación Internacional UTF-8 y Acentos en Español
+     */
+    private function testUtf8EncodingAndAccentsIntegrity(): void {
+        echo "\n--- 11. Codificación Internacional UTF-8 y Preservación de Acentos ---\n";
+
+        // 1. Verificar charset de la base de datos
+        $stmt = $this->pdo->query("SELECT default_character_set_name, default_collation_name FROM information_schema.SCHEMATA WHERE schema_name = 'miami_agency_db'");
+        $dbCharset = $stmt->fetch(PDO::FETCH_ASSOC);
+        $this->assert($dbCharset['default_character_set_name'] === 'utf8mb4', 'Charset predeterminado de la BD es utf8mb4');
+        $this->assert(str_starts_with($dbCharset['default_collation_name'], 'utf8mb4_'), 'Collation predeterminada de la BD es compatible con utf8mb4');
+
+        // 2. Verificar acentos en roles
+        $rolesStmt = $this->pdo->query("SELECT id, name, description FROM roles ORDER BY id ASC");
+        $roles = $rolesStmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->assert(str_contains($roles[0]['description'], 'Dirección') && str_contains($roles[0]['description'], 'supervisión'), 'Rol Jefe preserva acentos (Dirección, supervisión)');
+        $this->assert(str_contains($roles[1]['description'], 'gestión'), 'Rol Asistente preserva acentos (gestión)');
+        $this->assert(str_contains($roles[2]['description'], 'campañas'), 'Rol Estratega preserva la letra ñ (campañas)');
+        $this->assert(str_contains($roles[3]['description'], 'producción'), 'Rol Social Manager preserva acentos (producción)');
+
+        // 3. Verificar acentos en especialidades
+        $specStmt = $this->pdo->query("SELECT code, description FROM specialties WHERE code = 'EDITOR_VIDEO'")->fetch(PDO::FETCH_ASSOC);
+        $this->assert(str_contains($specStmt['description'], 'Edición'), 'Especialidad EDITOR_VIDEO contiene acento (Edición)');
+
+        // 4. Verificar ausencia de caracteres dañados o corruptos (doble interrogación ??)
+        $tables = ['roles', 'specialties', 'contracts', 'meetings', 'activities', 'email_campaigns'];
+        $hasCorruptedMarks = false;
+        foreach ($tables as $tbl) {
+            $rows = $this->pdo->query("SELECT * FROM {$tbl}")->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($rows as $r) {
+                foreach ($r as $val) {
+                    if (is_string($val) && str_contains($val, '??')) {
+                        $hasCorruptedMarks = true;
+                        break 3;
+                    }
+                }
+            }
+        }
+        $this->assert($hasCorruptedMarks === false, 'Ningun registro en la base de datos contiene secuencias corruptas (??)');
     }
 }
 

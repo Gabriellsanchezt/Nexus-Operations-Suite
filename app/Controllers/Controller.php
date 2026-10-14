@@ -13,8 +13,9 @@ abstract class Controller {
      * Renderizar una vista dentro del layout principal
      */
     protected function render(string $viewPath, array $data = [], string $layout = 'main'): void {
-        // Enviar encabezados anti-caché para forzar siempre la versión más reciente en actualizaciones
+        // Enviar encabezados anti-caché y codificación UTF-8 estricta
         if (!headers_sent()) {
+            header("Content-Type: text/html; charset=UTF-8");
             header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
             header("Cache-Control: post-check=0, pre-check=0", false);
             header("Pragma: no-cache");

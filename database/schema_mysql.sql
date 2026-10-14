@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS roles (
     description VARCHAR(255) NULL,
     status VARCHAR(20) DEFAULT 'ACTIVO',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Tabla de Especialidades / Permisos Granulares de Empleados
 CREATE TABLE IF NOT EXISTS specialties (
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS specialties (
     description VARCHAR(255) NULL,
     status VARCHAR(20) DEFAULT 'ACTIVO',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. Tabla de Usuarios (Credenciales de Acceso)
 CREATE TABLE IF NOT EXISTS users (
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_users_role (role_id),
     INDEX idx_users_status (status),
     CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 4. Tabla Intermedia: Especialidades asignadas a cada Usuario (3NF - M:N)
 CREATE TABLE IF NOT EXISTS user_specialties (
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS user_specialties (
     INDEX idx_us_specialty (specialty_id),
     CONSTRAINT fk_us_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     CONSTRAINT fk_us_specialty FOREIGN KEY (specialty_id) REFERENCES specialties(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- DOMINIO OPERATIVO DE LA AGENCIA
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS employees (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_employees_user (user_id),
     CONSTRAINT fk_employees_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 6. Clientes Realtors (Miami Real Estate Agents / Brokerages)
 CREATE TABLE IF NOT EXISTS realtors (
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS realtors (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_realtors_zone (miami_zone),
     INDEX idx_realtors_status (status)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 7. Almacén de Contratos Finales Concluidos (PDFs)
 CREATE TABLE IF NOT EXISTS contracts (
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS contracts (
     INDEX idx_contracts_realtor (realtor_id),
     INDEX idx_contracts_created (created_at),
     CONSTRAINT fk_contracts_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 8. Cronograma y Calendario de Email Marketing
 CREATE TABLE IF NOT EXISTS email_campaigns (
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS email_campaigns (
     INDEX idx_ec_realtor (realtor_id),
     INDEX idx_ec_date (scheduled_date),
     CONSTRAINT fk_ec_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 9. Agenda de Reuniones (Sincronización con Google Calendar)
 CREATE TABLE IF NOT EXISTS meetings (
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS meetings (
     INDEX idx_meetings_date (meeting_date),
     INDEX idx_meetings_realtor (realtor_id),
     CONSTRAINT fk_meetings_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 10. Tareas y Actividades Audiovisuales
 CREATE TABLE IF NOT EXISTS activities (
@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS activities (
     CONSTRAINT fk_act_realtor FOREIGN KEY (realtor_id) REFERENCES realtors(id) ON DELETE CASCADE,
     CONSTRAINT fk_act_employee FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE RESTRICT,
     CONSTRAINT fk_act_contract FOREIGN KEY (contract_id) REFERENCES contracts(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 11. Entregables Audiovisuales (Subidos por Empleados: Links Drive, Frame.io)
 CREATE TABLE IF NOT EXISTS activity_deliverables (
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS activity_deliverables (
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_deliv_activity (activity_id),
     CONSTRAINT fk_deliv_activity FOREIGN KEY (activity_id) REFERENCES activities(id) ON DELETE CASCADE
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 12. Revisiones y Feedback de Entregables (Por el Jefe)
 CREATE TABLE IF NOT EXISTS activity_reviews (
@@ -184,4 +184,4 @@ CREATE TABLE IF NOT EXISTS activity_reviews (
     INDEX idx_ar_reviewer (reviewer_user_id),
     CONSTRAINT fk_ar_deliverable FOREIGN KEY (deliverable_id) REFERENCES activity_deliverables(id) ON DELETE CASCADE,
     CONSTRAINT fk_ar_reviewer FOREIGN KEY (reviewer_user_id) REFERENCES users(id) ON DELETE RESTRICT
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

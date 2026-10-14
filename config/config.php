@@ -18,6 +18,15 @@ define('APP_ENV', getenv('APP_ENV') ?: 'development');
 // Zona Horaria Oficial: Hora Legal de Venezuela (America/Caracas, UTC-4)
 date_default_timezone_set('America/Caracas');
 
+// Configuración de Codificación de Caracteres Internacional (UTF-8)
+ini_set('default_charset', 'UTF-8');
+if (function_exists('mb_internal_encoding')) {
+    mb_internal_encoding('UTF-8');
+}
+if (function_exists('mb_http_output')) {
+    mb_http_output('UTF-8');
+}
+
 // Detección dinámica de BASE_URL para soporte nativo en XAMPP (/miami-agency-ops) y CLI (/)
 if (!defined('BASE_URL')) {
     $envBase = getenv('BASE_URL');

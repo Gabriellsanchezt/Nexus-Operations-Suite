@@ -47,6 +47,7 @@ class BlackBoxTestSuite {
         $this->testMeetingsAgendaAndGoogleCalendar();
         $this->testError404And500Sanitization();
         $this->testIdleSessionWarningModalAndKeepAliveApi();
+        $this->testUtf8HeadersAndContentDelivery();
 
         $elapsed = round(microtime(true) - $startTime, 4);
 
@@ -345,6 +346,23 @@ class BlackBoxTestSuite {
         // 6. Mensaje en vista de Login
         $resLogin = $this->request('/login?reason=inactivity', 'GET');
         $this->assert(str_contains($resLogin['body'], 'inactividad'), 'Vista de login presenta advertencia formal de sesion cerrada por inactividad');
+    }
+
+    /**
+     * 10. Verificación de Encabezados UTF-8 y Ausencia de Caracteres Corruptos
+     */
+    private function testUtf8HeadersAndContentDelivery(): void {
+        echo "\n--- 10. Codificación UTF-8 en Vistas y Ausencia de Corrupción (?) ---\n";
+
+        // Login Jefe
+        $this->request('/login', 'POST', ['email' => 'jefe@miamiagency.com', 'password' => 'password123']);
+
+        $resDash = $this->request('/dashboard', 'GET');
+        $this->assert($resDash['code'] === 200, 'GET /dashboard responde HTTP 200');
+        $this->assert(str_contains(strtolower($resDash['headers']), 'charset=utf-8'), 'Encabezados HTTP contienen charset=UTF-8 explícito');
+        $this->assert(mb_check_encoding($resDash['body'], 'UTF-8'), 'Cuerpo HTML de /dashboard es UTF-8 válido');
+        $this->assert(!str_contains($resDash['body'], '??'), 'Cuerpo HTML no contiene caracteres dobles de interrogación corruptos (??)');
+        $this->assert(str_contains($resDash['body'], 'Producción') || str_contains($resDash['body'], 'Reuniones') || str_contains($resDash['body'], 'Operaciones'), 'Vistas renderizan caracteres acentuados correctamente');
     }
 }
 
