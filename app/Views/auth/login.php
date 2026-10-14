@@ -53,6 +53,14 @@
             <?php unset($_SESSION['flash_error']); ?>
         <?php endif; ?>
 
+        <?php if (!empty($_SESSION['flash_warning'])): ?>
+            <div class="alert alert-warning py-2 px-3 small mb-3 text-dark border-warning d-flex align-items-center gap-2">
+                <i class="bi bi-clock-history fs-5 text-warning-emphasis flex-shrink-0"></i>
+                <div><?= htmlspecialchars($_SESSION['flash_warning']) ?></div>
+            </div>
+            <?php unset($_SESSION['flash_warning']); ?>
+        <?php endif; ?>
+
         <?php if (!empty($_SESSION['flash_info'])): ?>
             <div class="alert alert-info py-2 px-3 small mb-3">
                 <i class="bi bi-info-circle-fill me-1"></i> <?= htmlspecialchars($_SESSION['flash_info']) ?>

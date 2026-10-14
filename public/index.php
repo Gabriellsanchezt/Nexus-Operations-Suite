@@ -100,6 +100,11 @@ try {
             }
             break;
 
+        // API Heartbeat / Keep-Alive de Sesión
+        case '/api/session/keep-alive':
+            (new DashboardController())->keepAliveAjax();
+            break;
+
         // Perfil de Usuario
         case '/profile':
             $profile = new ProfileController();

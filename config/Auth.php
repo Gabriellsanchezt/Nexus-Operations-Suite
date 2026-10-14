@@ -10,6 +10,11 @@ use PDO;
 
 class Auth {
     /**
+     * Tiempo de inactividad máximo antes del cierre automático de sesión (15 minutos)
+     */
+    public const IDLE_TIMEOUT = 900;
+
+    /**
      * Iniciar sesión segura con parámetros recomendados de cookies
      */
     public static function initSession(): void {
@@ -62,6 +67,7 @@ class Auth {
             $_SESSION['role'] = $user['role_name'];
             $_SESSION['specialties'] = $specialtyCodes;
             $_SESSION['specialties_details'] = $specialties;
+            $_SESSION['last_activity'] = time();
 
             // Regenerar ID de sesión para prevenir Session Fixation si la sesión está activa
             if (session_status() === PHP_SESSION_ACTIVE && !headers_sent()) {
@@ -102,11 +108,39 @@ class Auth {
     }
 
     /**
-     * Verificar si hay una sesión activa
+     * Verificar si hay una sesión activa y no ha expirado por inactividad
      */
     public static function check(): bool {
         self::initSession();
-        return isset($_SESSION['user_id']);
+        if (!isset($_SESSION['user_id'])) {
+            return false;
+        }
+
+        // Si sobrepasa el tiempo límite de inactividad, invalidar sesión
+        if (isset($_SESSION['last_activity']) && (time() - (int)$_SESSION['last_activity'] > self::IDLE_TIMEOUT)) {
+            self::logout();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Renovar la marca de tiempo de última actividad de la sesión
+     */
+    public static function touchActivity(): void {
+        self::initSession();
+        if (isset($_SESSION['user_id'])) {
+            $_SESSION['last_activity'] = time();
+        }
+    }
+
+    /**
+     * Obtener el timestamp de la última actividad registrada
+     */
+    public static function getLastActivity(): ?int {
+        self::initSession();
+        return isset($_SESSION['last_activity']) ? (int)$_SESSION['last_activity'] : null;
     }
 
     /**
@@ -191,15 +225,49 @@ class Auth {
     }
 
     /**
-     * Middleware de Autenticación
+     * Middleware de Autenticación con Detección de Inactividad
      */
     public static function requireAuth(): void {
-        if (!self::check()) {
-            $_SESSION['flash_error'] = 'Debe iniciar sesión para acceder al sistema.';
-            $target = function_exists('url') ? url('/login') : '/login';
+        self::initSession();
+
+        $wasInactive = false;
+        if (isset($_SESSION['user_id']) && isset($_SESSION['last_activity']) && (time() - (int)$_SESSION['last_activity'] > self::IDLE_TIMEOUT)) {
+            $wasInactive = true;
+        }
+
+        if (!self::check() || $wasInactive) {
+            self::logout();
+            self::initSession();
+
+            $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest')
+                || (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'))
+                || (isset($_SERVER['REQUEST_URI']) && str_contains($_SERVER['REQUEST_URI'], '/api/'));
+
+            if ($isAjax) {
+                http_response_code(401);
+                header('Content-Type: application/json; charset=utf-8');
+                echo json_encode([
+                    'success' => false,
+                    'authenticated' => false,
+                    'expired' => $wasInactive,
+                    'message' => $wasInactive ? 'Sesión cerrada automáticamente por inactividad.' : 'Debe iniciar sesión para acceder al sistema.'
+                ]);
+                exit;
+            }
+
+            if ($wasInactive) {
+                $_SESSION['flash_warning'] = 'Su sesión ha sido cerrada automáticamente por inactividad para proteger la seguridad de su cuenta.';
+                $target = function_exists('url') ? url('/login?reason=inactivity') : '/login?reason=inactivity';
+            } else {
+                $_SESSION['flash_error'] = 'Debe iniciar sesión para acceder al sistema.';
+                $target = function_exists('url') ? url('/login') : '/login';
+            }
             header("Location: {$target}");
             exit;
         }
+
+        // Actualizar marca de actividad en cada petición autenticada activa
+        $_SESSION['last_activity'] = time();
     }
 
     /**

@@ -439,11 +439,57 @@ $currentStatusParam = $_GET['status'] ?? '';
     </div>
 </div>
 
+<!-- Modal Ejecutivo de Advertencia por Inactividad de Sesión -->
+<div class="modal fade" id="idleSessionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="idleSessionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+            <div class="modal-header bg-dark text-white border-bottom border-warning border-3 px-4 py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-clock-history text-warning fs-4"></i>
+                    <h5 class="modal-title fw-bold fs-6 mb-0 text-white" id="idleSessionModalLabel">¿Sigues ahí? — Control de Inactividad</h5>
+                </div>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="text-secondary mb-3">
+                    Hemos detectado un periodo prolongado de inactividad. Para salvaguardar la confidencialidad y seguridad operativa de la agencia, tu sesión se cerrará automáticamente en:
+                </p>
+                
+                <div class="my-2 py-2 px-4 bg-light rounded-3 border d-inline-block shadow-sm">
+                    <div class="display-4 fw-bold text-warning font-monospace mb-0" id="idleCountdownTimer">60s</div>
+                    <small class="text-muted text-uppercase fw-semibold" style="letter-spacing: 0.05em; font-size: 0.72rem;">Tiempo restante estimado</small>
+                </div>
+
+                <div class="progress mt-3 mb-2" style="height: 6px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" id="idleProgressBar" role="progressbar" style="width: 100%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+
+                <p class="text-muted small mt-3 mb-0">
+                    Presiona <strong>Continuar en la Sesión</strong> para mantenerte activo y seguir trabajando con normalidad.
+                </p>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between align-items-center">
+                <a href="<?= url('/logout?reason=inactivity') ?>" class="btn btn-outline-secondary btn-sm px-3">
+                    <i class="bi bi-box-arrow-right me-1"></i> Cerrar Sesión Ahora
+                </a>
+                <button type="button" class="btn btn-primary px-4 fw-semibold" id="btnExtendSession">
+                    <i class="bi bi-arrow-repeat me-1"></i> Continuar en la Sesión
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     window.APP_CONFIG = {
         baseUrl: '<?= url('') ?>',
         notificationsUrl: '<?= url('/api/notifications') ?>',
-        markReadUrl: '<?= url('/api/notifications/mark-read') ?>'
+        markReadUrl: '<?= url('/api/notifications/mark-read') ?>',
+        keepAliveUrl: '<?= url('/api/session/keep-alive') ?>',
+        logoutUrl: '<?= url('/logout?reason=inactivity') ?>',
+        sessionTimeout: {
+            idleSeconds: 840,       // 14 minutos de inactividad antes de abrir el modal
+            warningSeconds: 60      // 60 segundos de cuenta regresiva activa
+        }
     };
 </script>
 <!-- Bootstrap 5.3.3 JS Bundle -->

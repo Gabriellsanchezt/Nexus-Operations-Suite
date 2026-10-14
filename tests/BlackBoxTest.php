@@ -46,6 +46,7 @@ class BlackBoxTestSuite {
         $this->testRealtorProjectsModalApi();
         $this->testMeetingsAgendaAndGoogleCalendar();
         $this->testError404And500Sanitization();
+        $this->testIdleSessionWarningModalAndKeepAliveApi();
 
         $elapsed = round(microtime(true) - $startTime, 4);
 
@@ -304,6 +305,46 @@ class BlackBoxTestSuite {
         $this->assert(!str_contains($view500Content, '$errorLine'), 'Plantilla 500 no expone lineas de codigo ($errorLine)');
         $this->assert(!str_contains($view500Content, '$errorTrace'), 'Plantilla 500 no expone el stack trace ($errorTrace)');
         $this->assert(str_contains($view500Content, 'Código de Referencia de Incidencia'), 'Plantilla 500 despliega formalmente el Codigo de Referencia de Incidencia');
+    }
+
+    /**
+     * 9. Modal de Advertencia de Inactividad y Heartbeat API
+     */
+    private function testIdleSessionWarningModalAndKeepAliveApi(): void {
+        echo "\n--- 9. Modal de Advertencia de Inactividad y Heartbeat API ---\n";
+
+        // 1. Petición no autenticada a /api/session/keep-alive retorna HTTP 401
+        $this->resetCookies();
+        $resUnauth = $this->request('/api/session/keep-alive', 'POST', [], false, true);
+        $this->assert($resUnauth['code'] === 401, 'POST /api/session/keep-alive no autenticado retorna HTTP 401');
+        $jsonUnauth = json_decode($resUnauth['body'], true);
+        $this->assert(isset($jsonUnauth['authenticated']) && $jsonUnauth['authenticated'] === false, 'Respuesta 401 contiene authenticated=false');
+
+        // 2. Iniciar sesión como Jefe
+        $this->request('/login', 'POST', ['email' => 'jefe@miamiagency.com', 'password' => 'password123']);
+
+        // 3. Heartbeat / Keep-Alive autenticado
+        $resAuth = $this->request('/api/session/keep-alive', 'POST', [], true, true);
+        $this->assert($resAuth['code'] === 200, 'POST /api/session/keep-alive autenticado retorna HTTP 200');
+        $jsonAuth = json_decode($resAuth['body'], true);
+        $this->assert(isset($jsonAuth['success']) && $jsonAuth['success'] === true, 'Payload keep-alive contiene success=true');
+        $this->assert(isset($jsonAuth['expires_in']) && $jsonAuth['expires_in'] === 900, 'Payload keep-alive reporta expires_in=900');
+
+        // 4. Modal en layout principal (Dashboard)
+        $resDash = $this->request('/dashboard', 'GET');
+        $this->assert(str_contains($resDash['body'], 'id="idleSessionModal"'), 'El layout incluye el modal #idleSessionModal');
+        $this->assert(str_contains($resDash['body'], 'id="idleCountdownTimer"'), 'El modal incluye el cronometro #idleCountdownTimer');
+        $this->assert(str_contains($resDash['body'], 'id="btnExtendSession"'), 'El modal incluye el boton #btnExtendSession');
+        $this->assert(str_contains($resDash['body'], 'sessionTimeout'), 'APP_CONFIG expone los parametros de sessionTimeout');
+
+        // 5. Cierre de sesión por inactividad
+        $resLogout = $this->request('/logout?reason=inactivity', 'GET');
+        $this->assert($resLogout['code'] === 302, 'GET /logout?reason=inactivity redirige (HTTP 302)');
+        $this->assert(str_contains($resLogout['headers'], 'Location: /login?reason=inactivity'), 'Redirección apunta a /login?reason=inactivity');
+
+        // 6. Mensaje en vista de Login
+        $resLogin = $this->request('/login?reason=inactivity', 'GET');
+        $this->assert(str_contains($resLogin['body'], 'inactividad'), 'Vista de login presenta advertencia formal de sesion cerrada por inactividad');
     }
 }
 

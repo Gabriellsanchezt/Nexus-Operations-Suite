@@ -113,5 +113,19 @@ class DashboardController extends Controller {
             'notifications' => $notifications
         ]);
     }
+
+    /**
+     * Endpoint AJAX para renovar la actividad de la sesión (Heartbeat / Keep-Alive)
+     */
+    public function keepAliveAjax(): void {
+        Auth::requireAuth();
+        Auth::touchActivity();
+
+        $this->json([
+            'success' => true,
+            'timestamp' => time(),
+            'expires_in' => Auth::IDLE_TIMEOUT
+        ]);
+    }
 }
 

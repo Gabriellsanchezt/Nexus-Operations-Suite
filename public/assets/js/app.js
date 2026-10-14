@@ -416,3 +416,189 @@ async function apiRequest(url, method = 'POST', data = {}) {
         throw error;
     }
 }
+
+/**
+ * =====================================================================
+ * GESTOR DE TIEMPO DE ESPERA POR INACTIVIDAD DE SESIÓN (IDLE MONITOR)
+ * =====================================================================
+ * Monitorea actividad del usuario (mouse, teclado, touch, scroll),
+ * ejecuta heartbeats automáticos periódicos si hay actividad,
+ * despliega el modal ejecutivo de advertencia "¿Sigues ahí?" con
+ * cuenta regresiva activa y sonido armónico, y finaliza la sesión si
+ * no se recibe confirmación.
+ */
+(function initSessionIdleMonitor() {
+    // Solo inicializar si el usuario se encuentra en el entorno autenticado
+    if (!window.APP_CONFIG || !window.APP_CONFIG.logoutUrl) return;
+
+    const timeoutCfg = window.APP_CONFIG.sessionTimeout || { idleSeconds: 840, warningSeconds: 60 };
+    const idleSeconds = Number(timeoutCfg.idleSeconds) || 840;
+    const warningSeconds = Number(timeoutCfg.warningSeconds) || 60;
+    const keepAliveUrl = window.APP_CONFIG.keepAliveUrl || '/api/session/keep-alive';
+    const logoutUrl = window.APP_CONFIG.logoutUrl || '/logout?reason=inactivity';
+
+    let lastActivityTimestamp = Date.now();
+    let lastHeartbeatTimestamp = Date.now();
+    let isWarningModalOpen = false;
+    let countdownRemaining = warningSeconds;
+    let countdownIntervalId = null;
+    let idleCheckIntervalId = null;
+    let modalInstance = null;
+
+    // Obtener o instanciar el modal Bootstrap de inactividad
+    function getIdleModalInstance() {
+        const modalEl = document.getElementById('idleSessionModal');
+        if (!modalEl) return null;
+        if (!modalInstance && window.bootstrap && window.bootstrap.Modal) {
+            modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+        return modalInstance;
+    }
+
+    // Ping al servidor para refrescar la actividad en PHP
+    async function pingServerKeepAlive(showToast = false) {
+        try {
+            const response = await fetch(keepAliveUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (showToast && typeof window.showNotificationToast === 'function') {
+                    window.showNotificationToast('Sesión Renovada', 'Tu sesión activa ha sido extendida exitosamente.', 'info');
+                }
+                return data;
+            } else if (response.status === 401) {
+                // Si el servidor reporta 401 (sesión expirada), redirigir de inmediato al login
+                window.location.href = logoutUrl;
+            }
+        } catch (err) {
+            console.warn('Keep-alive ping no completado:', err);
+        }
+    }
+
+    // Registrar actividad del usuario (limitado con throttle para rendimiento)
+    let throttleTimer = null;
+    function handleUserActivity() {
+        if (isWarningModalOpen) return; // Si el modal de advertencia está abierto, requiere pulsar el botón
+
+        const now = Date.now();
+        lastActivityTimestamp = now;
+
+        // Si han transcurrido más de 120 segundos desde el último heartbeat y el usuario está trabajando, enviar ping silencioso
+        if (now - lastHeartbeatTimestamp > 120000) {
+            lastHeartbeatTimestamp = now;
+            pingServerKeepAlive(false);
+        }
+    }
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'];
+    activityEvents.forEach(evt => {
+        window.addEventListener(evt, () => {
+            if (!throttleTimer) {
+                throttleTimer = setTimeout(() => {
+                    handleUserActivity();
+                    throttleTimer = null;
+                }, 1000);
+            }
+        }, { passive: true });
+    });
+
+    // Abrir el modal de advertencia con cuenta regresiva
+    function openInactivityWarning() {
+        const modal = getIdleModalInstance();
+        if (!modal || isWarningModalOpen) return;
+
+        isWarningModalOpen = true;
+        countdownRemaining = warningSeconds;
+
+        const timerEl = document.getElementById('idleCountdownTimer');
+        const progressEl = document.getElementById('idleProgressBar');
+        if (timerEl) timerEl.textContent = `${countdownRemaining}s`;
+        if (progressEl) {
+            progressEl.style.width = '100%';
+            progressEl.setAttribute('aria-valuenow', '100');
+        }
+
+        // Tono auditivo de advertencia armónico
+        if (typeof window.playNotificationChime === 'function') {
+            window.playNotificationChime();
+        }
+
+        modal.show();
+
+        // Iniciar intervalo de decremento por segundo
+        if (countdownIntervalId) clearInterval(countdownIntervalId);
+        countdownIntervalId = setInterval(() => {
+            countdownRemaining--;
+            if (timerEl) timerEl.textContent = `${Math.max(0, countdownRemaining)}s`;
+            if (progressEl) {
+                const percent = Math.max(0, Math.round((countdownRemaining / warningSeconds) * 100));
+                progressEl.style.width = `${percent}%`;
+                progressEl.setAttribute('aria-valuenow', percent.toString());
+            }
+
+            if (countdownRemaining <= 0) {
+                clearInterval(countdownIntervalId);
+                // Tiempo de espera agotado sin respuesta: cerrar sesión automáticamente
+                window.location.href = logoutUrl;
+            }
+        }, 1000);
+    }
+
+    // Acción para continuar y renovar la sesión
+    function continueSession() {
+        if (countdownIntervalId) {
+            clearInterval(countdownIntervalId);
+            countdownIntervalId = null;
+        }
+
+        isWarningModalOpen = false;
+        lastActivityTimestamp = Date.now();
+        lastHeartbeatTimestamp = Date.now();
+
+        const modal = getIdleModalInstance();
+        if (modal) {
+            modal.hide();
+        }
+
+        pingServerKeepAlive(true);
+    }
+
+    // Vincular botón "Continuar en la Sesión"
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnExtend = document.getElementById('btnExtendSession');
+        if (btnExtend) {
+            btnExtend.addEventListener('click', (e) => {
+                e.preventDefault();
+                continueSession();
+            });
+        }
+    });
+
+    // Monitorización periódica cada 2 segundos
+    idleCheckIntervalId = setInterval(() => {
+        if (isWarningModalOpen) return;
+
+        const elapsedSeconds = Math.floor((Date.now() - lastActivityTimestamp) / 1000);
+        if (elapsedSeconds >= idleSeconds) {
+            openInactivityWarning();
+        }
+    }, 2000);
+
+    // Exportar métodos al scope global para pruebas e interactividad
+    window.IdleSessionMonitor = {
+        openWarning: openInactivityWarning,
+        continueSession: continueSession,
+        getLastActivity: () => lastActivityTimestamp,
+        isWarningOpen: () => isWarningModalOpen
+    };
+})();
+

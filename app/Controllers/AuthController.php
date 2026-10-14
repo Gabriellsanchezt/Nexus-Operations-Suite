@@ -13,6 +13,11 @@ class AuthController extends Controller {
             $this->redirect('/dashboard');
         }
 
+        // Si la redirección fue ocasionada por inactividad, desplegar advertencia informativa
+        if (isset($_GET['reason']) && $_GET['reason'] === 'inactivity' && empty($_SESSION['flash_warning']) && empty($_SESSION['flash_error'])) {
+            $this->setFlash('warning', 'Su sesión ha sido cerrada automáticamente por inactividad para proteger la seguridad de su cuenta.');
+        }
+
         $this->render('auth/login', [
             'pageTitle' => 'Iniciar Sesión | Miami Media Agency'
         ], 'none');
@@ -37,8 +42,14 @@ class AuthController extends Controller {
     }
 
     public function logout(): void {
+        $reason = $_GET['reason'] ?? '';
         Auth::logout();
-        $this->setFlash('info', 'Ha cerrado sesión correctamente.');
-        $this->redirect('/login');
+        if ($reason === 'inactivity') {
+            $this->setFlash('warning', 'Su sesión ha sido cerrada automáticamente por inactividad para proteger la seguridad de su cuenta.');
+            $this->redirect('/login?reason=inactivity');
+        } else {
+            $this->setFlash('info', 'Ha cerrado sesión correctamente.');
+            $this->redirect('/login');
+        }
     }
 }

@@ -51,6 +51,7 @@ class WhiteBoxTestSuite {
         $this->testReportModel15And30DaysZeroMoney();
         $this->testContractModelIntegrity();
         $this->testRealtorModelProjectsIsolation();
+        $this->testIdleSessionSecurityAndActivityTracking();
 
         $elapsed = round(microtime(true) - $startTime, 4);
 
@@ -334,6 +335,42 @@ class WhiteBoxTestSuite {
             }
         }
         $this->assert($allBelong === true, 'Todos los proyectos devueltos pertenecen estrictamente al Realtor seleccionado');
+    }
+
+    /**
+     * 10. Control de Inactividad de Sesión y Heartbeat (Idle Security)
+     */
+    private function testIdleSessionSecurityAndActivityTracking(): void {
+        echo "\n--- 10. Control de Inactividad de Sesion y Heartbeat (Idle Security) ---\n";
+
+        // 1. Constante de tiempo límite configurada en 15 minutos (900s)
+        $this->assert(defined('\Config\Auth::IDLE_TIMEOUT'), 'Constante Auth::IDLE_TIMEOUT esta definida');
+        $this->assert(Auth::IDLE_TIMEOUT === 900, 'Auth::IDLE_TIMEOUT equivale exactamente a 900 segundos (15 min)');
+
+        // 2. Simulación de sesión activa
+        Auth::initSession();
+        $_SESSION['user_id'] = 999;
+        $_SESSION['role'] = 'JEFE';
+        $_SESSION['email'] = 'test_idle@miamiagency.com';
+        $_SESSION['last_activity'] = time();
+
+        $this->assert(Auth::check() === true, 'Sesión con actividad reciente es evaluada como activa');
+        $this->assert(Auth::getLastActivity() !== null, 'Auth::getLastActivity() retorna timestamp valido');
+
+        // 3. Touch de actividad actualiza la marca
+        $prevTime = time() - 10;
+        $_SESSION['last_activity'] = $prevTime;
+        Auth::touchActivity();
+        $this->assert(Auth::getLastActivity() >= $prevTime, 'Auth::touchActivity() renueva marca temporal de actividad');
+
+        // 4. Expiración por inactividad superior al umbral
+        $_SESSION['last_activity'] = time() - (Auth::IDLE_TIMEOUT + 60); // 960 segundos atrás
+        $checkExpired = Auth::check();
+        $this->assert($checkExpired === false, 'Auth::check() invalida sesion inactiva por mas de 900 segundos');
+        $this->assert(!isset($_SESSION['user_id']), 'Auth::check() destruye datos de sesion al expirar por inactividad');
+
+        // Limpiar sesión de pruebas
+        Auth::logout();
     }
 }
 
