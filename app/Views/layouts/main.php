@@ -63,37 +63,7 @@ $currentStatusParam = $_GET['status'] ?? '';
             </button>
         </div>
 
-        <!-- 2. Perfil de Usuario en el Sidebar -->
-        <div class="app-sidebar-user">
-            <div class="d-flex align-items-center gap-3">
-                <div class="sidebar-user-avatar">
-                    <?= strtoupper(substr($currentUser['full_name'] ?? 'U', 0, 1)) ?>
-                </div>
-                <div class="overflow-hidden">
-                    <div class="fw-bold text-white small text-truncate"><?= htmlspecialchars($currentUser['full_name'] ?? 'Usuario') ?></div>
-                        <?php 
-                        $userRole = $currentUser['role'] ?? '';
-                        $roleBadgeClass = match($userRole) {
-                            'JEFE', 'JEFE_ADMIN' => 'bg-danger text-white',
-                            'ASISTENTE' => 'bg-primary text-white',
-                            'ESTRATEGA_MARKETING' => 'bg-success text-white',
-                            'SOCIAL_MANAGER' => 'bg-info text-dark',
-                            default => 'bg-secondary text-white'
-                        };
-                        ?>
-                        <span class="badge <?= $roleBadgeClass ?> text-uppercase" style="font-size: 0.65rem;"><?= htmlspecialchars(\Config\Auth::getRoleLabel($userRole)) ?></span>
-                </div>
-            </div>
-            <?php if (!empty($currentUser['specialties'])): ?>
-                <div class="d-flex flex-wrap gap-1 mt-2">
-                    <?php foreach ($currentUser['specialties'] as $spec): ?>
-                        <span class="badge bg-secondary bg-opacity-50 text-light" style="font-size: 0.62rem;"><?= htmlspecialchars($spec) ?></span>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- 3. Enlaces de Navegación del Sidebar -->
+        <!-- 2. Enlaces de Navegación del Sidebar -->
         <div class="sidebar-nav-container">
             <!-- 1. Panel General -->
             <div class="sidebar-heading">Panel Principal</div>
@@ -197,20 +167,6 @@ $currentStatusParam = $_GET['status'] ?? '';
                     <span class="badge sidebar-pill-badge">15 / 30 Días</span>
                 </a>
             <?php endif; ?>
-        </div>
-
-        <!-- 4. Pie del Sidebar -->
-        <div class="app-sidebar-footer">
-            <div class="d-flex align-items-center justify-content-between mb-2 text-muted small" style="font-size: 0.72rem;">
-                <span class="d-flex align-items-center gap-1">
-                    <span class="pulse-dot"></span> 3NF Protegido
-                </span>
-                <span class="font-monospace">Miami-Dade</span>
-            </div>
-            <a href="<?= url('/logout') ?>" class="btn-sidebar-logout" title="Cerrar sesión en este equipo">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Cerrar Sesión</span>
-            </a>
         </div>
     </aside>
 
@@ -433,7 +389,7 @@ $currentStatusParam = $_GET['status'] ?? '';
         <!-- Pie de Página -->
         <footer class="bg-white border-top py-3 mt-auto text-center text-muted small">
             <div class="container-fluid px-4">
-                Miami Luxury Media Agency &copy; <?= date('Y') ?> | Operaciones Inmobiliarias, Contratos & Producción Audiovisual (Miami-Dade, FL)
+                Miami Luxury Media Agency &copy; <?= date('Y') ?> | Operaciones Inmobiliarias, Contratos & Producción Audiovisual
             </div>
         </footer>
     </div>
