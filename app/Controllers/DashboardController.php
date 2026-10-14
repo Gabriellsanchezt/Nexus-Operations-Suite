@@ -65,7 +65,10 @@ class DashboardController extends Controller {
     public function markNotificationRead(): void {
         Auth::requireAuth();
         $raw = file_get_contents('php://input');
-        $data = json_decode($raw, true) ?? [];
+        $data = json_decode($raw, true);
+        if (!is_array($data)) {
+            $data = $_POST;
+        }
 
         if (!isset($_SESSION['read_notification_ids'])) {
             $_SESSION['read_notification_ids'] = [];
@@ -79,11 +82,11 @@ class DashboardController extends Controller {
             $notifs = \App\Services\NotificationService::getUserNotifications($user, false);
             foreach ($notifs as $n) {
                 if (!empty($n['id'])) {
-                    $_SESSION['read_notification_ids'][$n['id']] = true;
+                    $_SESSION['read_notification_ids'][(string)$n['id']] = true;
                 }
             }
         } elseif (!empty($id)) {
-            $_SESSION['read_notification_ids'][$id] = true;
+            $_SESSION['read_notification_ids'][(string)$id] = true;
         }
 
         // Devolver cantidad restante de notificaciones no leídas
@@ -93,6 +96,21 @@ class DashboardController extends Controller {
         $this->json([
             'success' => true,
             'remaining_count' => count($remaining)
+        ]);
+    }
+
+    /**
+     * Endpoint AJAX para consultar notificaciones en tiempo real
+     */
+    public function getNotificationsAjax(): void {
+        Auth::requireAuth();
+        $user = Auth::user();
+        $notifications = \App\Services\NotificationService::getUserNotifications($user, true);
+
+        $this->json([
+            'success' => true,
+            'count' => count($notifications),
+            'notifications' => $notifications
         ]);
     }
 }

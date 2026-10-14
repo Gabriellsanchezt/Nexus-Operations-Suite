@@ -30,7 +30,7 @@
             color: #0f172a;
             border-radius: 20px;
             box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
-            max-width: 680px;
+            max-width: 580px;
             width: 100%;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -66,16 +66,11 @@
             -webkit-text-fill-color: transparent;
             margin: 12px 0 6px;
         }
-        .tech-box {
-            background: #0b1329;
-            color: #94a3b8;
-            border-radius: 10px;
+        .incident-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             padding: 16px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 0.78rem;
-            max-height: 240px;
-            overflow-y: auto;
-            border: 1px solid #1e293b;
         }
     </style>
 </head>
@@ -84,50 +79,36 @@
 <div class="error-card">
     <div class="error-card-header">
         <div class="error-badge-pill mb-2">
-            <i class="bi bi-shield-exclamation"></i> Incidencia de Servidor
+            <i class="bi bi-shield-check"></i> Seguridad del Sistema Activa
         </div>
         <div class="error-code-watermark">500</div>
-        <h4 class="fw-bold mb-1 text-white">Incidencia Técnica en el Sistema</h4>
+        <h4 class="fw-bold mb-1 text-white">Incidencia Técnica en el Servidor</h4>
         <p class="text-white-50 small mb-0">
-            El servidor ha detectado un comportamiento imprevisto al procesar la solicitud
+            Se ha producido una interrupción imprevista al procesar la operación
         </p>
     </div>
 
     <div class="p-4 p-md-5">
-        <div class="alert alert-warning border-0 bg-warning bg-opacity-10 text-dark d-flex align-items-start gap-3 p-3 rounded-3 mb-4">
-            <i class="bi bi-exclamation-triangle-fill text-warning fs-4 flex-shrink-0 mt-1"></i>
+        <div class="alert alert-success border-0 bg-success bg-opacity-10 text-dark d-flex align-items-start gap-3 p-3 rounded-3 mb-4">
+            <i class="bi bi-shield-lock-fill text-success fs-4 flex-shrink-0 mt-1"></i>
             <div class="small">
-                <strong>Integridad Protegida:</strong> Si estabas guardando información, la transacción de base de datos fue revertida automáticamente para proteger la integridad relacional de los registros de Realtors, Tareas y Contratos.
+                <strong>Integridad Protegida:</strong> Los mecanismos de seguridad aislaron la solicitud de forma inmediata. Cualquier cambio parcial fue revertido para garantizar la coherencia y protección total de los registros.
             </div>
         </div>
 
-        <?php if (!empty($errorMessage) && (defined('APP_ENV') && APP_ENV === 'development')): ?>
-            <div class="card border border-slate-200 mb-4 shadow-none">
-                <div class="card-header bg-light py-2 px-3 d-flex align-items-center justify-content-between">
-                    <span class="small fw-semibold text-secondary font-monospace">
-                        <i class="bi bi-code-square me-1"></i> Diagnóstico Técnico (Modo Desarrollo)
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 small" onclick="copyDiagnostic()" id="btnCopyDiag">
-                        <i class="bi bi-clipboard me-1"></i> Copiar
-                    </button>
-                </div>
-                <div class="card-body p-3">
-                    <div class="text-danger fw-semibold small mb-1" id="diagMessage">
-                        <?= htmlspecialchars($errorMessage) ?>
-                    </div>
-                    <?php if (!empty($errorFile)): ?>
-                        <div class="text-muted small mb-2 font-monospace" style="font-size: 0.75rem;">
-                            <?= htmlspecialchars($errorFile) ?> : línea <?= htmlspecialchars((string)($errorLine ?? '')) ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php if (!empty($errorTrace)): ?>
-                        <div class="tech-box text-light" id="diagTrace">
-                            <?= htmlspecialchars($errorTrace) ?>
-                        </div>
-                    <?php endif; ?>
-                </div>
+        <div class="incident-box mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="text-muted small fw-semibold text-uppercase" style="font-size: 0.72rem;">
+                    Código de Referencia de Incidencia
+                </span>
+                <span class="badge bg-dark font-monospace px-2 py-1" style="font-size: 0.75rem;">
+                    <?= htmlspecialchars($incidentCode ?? ('NEX-' . strtoupper(substr(md5((string)time()), 0, 8)))) ?>
+                </span>
             </div>
-        <?php endif; ?>
+            <p class="text-secondary small mb-0 lh-sm" style="font-size: 0.8rem;">
+                Por políticas de protección de infraestructura, el diagnóstico detallado ha sido archivado en los registros internos del servidor central para su resolución sin exponer datos sensibles.
+            </p>
+        </div>
 
         <div class="d-grid gap-2 mb-3">
             <button type="button" onclick="location.reload()" class="btn btn-dark py-2 d-flex align-items-center justify-content-center gap-2 fw-semibold">
@@ -156,23 +137,6 @@
         </div>
     </div>
 </div>
-
-<script>
-function copyDiagnostic() {
-    const msg = document.getElementById('diagMessage')?.innerText || '';
-    const trace = document.getElementById('diagTrace')?.innerText || '';
-    const fullText = "Mensaje: " + msg + "\n\nTrace:\n" + trace;
-    navigator.clipboard.writeText(fullText).then(() => {
-        const btn = document.getElementById('btnCopyDiag');
-        if (btn) {
-            btn.innerHTML = '<i class="bi bi-check2 text-success me-1"></i> Copiado';
-            setTimeout(() => {
-                btn.innerHTML = '<i class="bi bi-clipboard me-1"></i> Copiar';
-            }, 2000);
-        }
-    });
-}
-</script>
 
 <!-- Bootstrap 5.3.3 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

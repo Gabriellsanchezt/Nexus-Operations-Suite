@@ -43,9 +43,9 @@ $currentStatusParam = $_GET['status'] ?? '';
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
     <!-- =========================================================================
-         SLIDER BAR (SIDEBAR / BARRA LATERAL DESLIZABLE Y FIJA)
+         SLIDER BAR (SIDEBAR / BARRA LATERAL DESLIZABLE Y FIJA - SIEMPRE CERRADA AL INGRESAR)
          ========================================================================= -->
-    <aside class="app-sidebar" id="appSidebar">
+    <aside class="app-sidebar sidebar-collapsed" id="appSidebar">
         <!-- 1. Cabecera del Sidebar con Marca -->
         <div class="app-sidebar-header">
             <a href="<?= url('/dashboard') ?>" class="sidebar-brand">
@@ -217,7 +217,7 @@ $currentStatusParam = $_GET['status'] ?? '';
     <!-- =========================================================================
          CONTENEDOR PRINCIPAL DERECHO (TOPBAR + CONTENIDO)
          ========================================================================= -->
-    <div class="app-main-wrapper" id="appMainWrapper">
+    <div class="app-main-wrapper main-expanded" id="appMainWrapper">
         <!-- Topbar Superior Slim -->
         <header class="app-topbar">
             <div class="d-flex align-items-center gap-3">
@@ -303,11 +303,19 @@ $currentStatusParam = $_GET['status'] ?? '';
                         <?= $unreadNotifCount ?>
                     </span>
                 </div>
-                <button type="button" 
-                        class="btn btn-link btn-sm text-decoration-none p-0 text-muted small fw-normal btn-mark-all-read <?= $unreadNotifCount === 0 ? 'd-none' : '' ?>" 
-                        title="Marcar todas como vistas">
-                    <i class="bi bi-check2-all me-1 text-primary"></i>Marcar todas
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" 
+                            class="btn btn-link btn-sm text-decoration-none p-0 text-muted small fw-normal btn-test-sound me-1" 
+                            onclick="window.playNotificationChime && window.playNotificationChime()" 
+                            title="Probar sonido de alertas">
+                        <i class="bi bi-volume-up text-secondary fs-6"></i>
+                    </button>
+                    <button type="button" 
+                            class="btn btn-link btn-sm text-decoration-none p-0 text-muted small fw-normal btn-mark-all-read <?= $unreadNotifCount === 0 ? 'd-none' : '' ?>" 
+                            title="Marcar todas como vistas">
+                        <i class="bi bi-check2-all me-1 text-primary"></i>Marcar todas
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -434,6 +442,7 @@ $currentStatusParam = $_GET['status'] ?? '';
 <script>
     window.APP_CONFIG = {
         baseUrl: '<?= url('') ?>',
+        notificationsUrl: '<?= url('/api/notifications') ?>',
         markReadUrl: '<?= url('/api/notifications/mark-read') ?>'
     };
 </script>
@@ -456,9 +465,6 @@ function toggleSidebar() {
         if (mainWrapper) {
             mainWrapper.classList.toggle('main-expanded', isCollapsed);
         }
-        try {
-            localStorage.setItem('sidebar_collapsed_pref', isCollapsed ? '1' : '0');
-        } catch(e) {}
     } else {
         // En Móvil y Tablets: Deslizar con telón de fondo
         const isOpen = sidebar.classList.toggle('sidebar-open');
@@ -468,17 +474,21 @@ function toggleSidebar() {
     }
 }
 
-// Restaurar preferencia en Laptop / Desktop al cargar la página
+// Al ingresar a cualquier página, garantizar siempre que la barra lateral comience cerrada
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.innerWidth >= 992) {
-        try {
-            if (localStorage.getItem('sidebar_collapsed_pref') === '1') {
-                const sidebar = document.getElementById('appSidebar');
-                const mainWrapper = document.getElementById('appMainWrapper');
-                if (sidebar) sidebar.classList.add('sidebar-collapsed');
-                if (mainWrapper) mainWrapper.classList.add('main-expanded');
-            }
-        } catch(e) {}
+    const sidebar = document.getElementById('appSidebar');
+    const mainWrapper = document.getElementById('appMainWrapper');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (sidebar) {
+        sidebar.classList.add('sidebar-collapsed');
+        sidebar.classList.remove('sidebar-open');
+    }
+    if (mainWrapper) {
+        mainWrapper.classList.add('main-expanded');
+    }
+    if (backdrop) {
+        backdrop.classList.remove('show');
     }
 });
 

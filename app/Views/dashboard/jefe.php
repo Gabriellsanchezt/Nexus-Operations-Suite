@@ -4,11 +4,8 @@
         <p class="text-muted mb-0">Control integral de producción audiovisual, contratos y cartera de Realtors en Miami</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="<?= url('/reports') ?>" class="btn btn-outline-dark">
+        <a href="<?= url('/reports') ?>" class="btn btn-outline-dark fw-semibold">
             <i class="bi bi-graph-up me-1"></i> Reportes Ejecutivos
-        </a>
-        <a href="<?= url('/contracts/final') ?>" class="btn btn-outline-danger fw-semibold">
-            <i class="bi bi-file-earmark-pdf me-1"></i> Contratos Finales (PDF)
         </a>
     </div>
 </div>

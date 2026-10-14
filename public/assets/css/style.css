@@ -1139,3 +1139,17 @@ body {
 .exec-icon-steel  { background: rgba(71, 85, 105, 0.08); color: #475569; }
 .exec-icon-wine   { background: rgba(153, 27, 27, 0.08); color: #991b1b; }
 
+/* Animación sutil para la campana de notificaciones al recibir alertas */
+@keyframes bellRingAnim {
+    0%, 100% { transform: rotate(0); }
+    15% { transform: rotate(14deg); }
+    30% { transform: rotate(-12deg); }
+    45% { transform: rotate(10deg); }
+    60% { transform: rotate(-8deg); }
+    75% { transform: rotate(4deg); }
+}
+
+.bell-ringing {
+    animation: bellRingAnim 0.85s ease-in-out;
+}
+

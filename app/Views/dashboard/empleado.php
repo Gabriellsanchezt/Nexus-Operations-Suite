@@ -8,9 +8,6 @@
             <a href="<?= url('/activities/my-tasks') ?>" class="btn btn-primary fw-semibold">
                 <i class="bi bi-play-circle-fill me-1"></i> Mis Tareas
             </a>
-            <a href="<?= url('/contracts/final') ?>" class="btn btn-outline-danger fw-semibold">
-                <i class="bi bi-file-earmark-pdf me-1"></i> Contratos Finales
-            </a>
             <a href="<?= url('/email-marketing') ?>" class="btn btn-outline-success fw-semibold">
                 <i class="bi bi-envelope-paper-fill me-1"></i> Email Marketing
             </a>

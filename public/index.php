@@ -88,7 +88,12 @@ try {
             (new DashboardController())->index();
             break;
 
-        // API Notificaciones
+        // API Notificaciones en Tiempo Real
+        case '/api/notifications':
+        case '/api/notifications/check':
+            (new DashboardController())->getNotificationsAjax();
+            break;
+
         case '/api/notifications/mark-read':
             if ($requestMethod === 'POST') {
                 (new DashboardController())->markNotificationRead();
@@ -374,16 +379,14 @@ try {
     }
 } catch (\Throwable $e) {
     http_response_code(500);
-    error_log("[NEXUS ERROR] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
-    $errorMessage = $e->getMessage();
-    $errorFile = $e->getFile();
-    $errorLine = $e->getLine();
-    $errorTrace = $e->getTraceAsString();
+    $incidentCode = 'NEX-' . strtoupper(substr(md5(uniqid((string)mt_rand(), true)), 0, 8));
+    error_log("[NEXUS ERROR] [{$incidentCode}] " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine() . "\nTrace: " . $e->getTraceAsString());
+    
     $error500Path = APP_PATH . '/Views/errors/500.php';
     if (file_exists($error500Path)) {
         require $error500Path;
     } else {
         echo "<h1>500 Internal Server Error</h1>";
-        echo "<p>" . htmlspecialchars($errorMessage) . "</p>";
+        echo "<p>Ha ocurrido una incidencia técnica. Código de referencia: " . htmlspecialchars($incidentCode) . "</p>";
     }
 }
