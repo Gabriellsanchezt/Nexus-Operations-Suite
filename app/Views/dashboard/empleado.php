@@ -50,12 +50,6 @@
     </div>
 </div>
 
-<!-- TABLERO DE PRODUCCIÓN ESCALABLE -->
-<?php
-$activities = $myTasks ?? [];
-require APP_PATH . '/Views/dashboard/partials/production_board.php';
-?>
-
 <!-- MINI CALENDARIO INTERACTIVO DE ACTIVIDADES DEL MES -->
 <?php
 $calendarActivities = $myTasks ?? [];
@@ -63,4 +57,10 @@ $isJefeView = false;
 $calendarTitle = 'Mi Calendario de Actividades del Mes';
 $calendarSubtitle = 'Fechas programadas de tus rodajes, entregas y fechas límite asignadas';
 require APP_PATH . '/Views/dashboard/partials/mini_calendar.php';
+?>
+
+<!-- TABLERO DE PRODUCCIÓN ESCALABLE -->
+<?php
+$activities = $myTasks ?? [];
+require APP_PATH . '/Views/dashboard/partials/production_board.php';
 ?>

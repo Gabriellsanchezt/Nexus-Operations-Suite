@@ -77,12 +77,6 @@
     </div>
 </div>
 
-<!-- TABLERO DE PRODUCCIÓN ESCALABLE POR TIEMPO (FIFO) -->
-<?php
-$activities = $allActivities ?? [];
-require APP_PATH . '/Views/dashboard/partials/production_board.php';
-?>
-
 <!-- MINI CALENDARIO INTERACTIVO DE ACTIVIDADES DEL MES (DIRECCIÓN) -->
 <?php
 $calendarActivities = $allActivities ?? [];
@@ -90,4 +84,10 @@ $isJefeView = true;
 $calendarTitle = 'Calendario de Producción Audiovisual del Mes (Miami-Dade)';
 $calendarSubtitle = 'Supervisión de rodajes, drones, carruseles y fechas límite de entrega del equipo';
 require APP_PATH . '/Views/dashboard/partials/mini_calendar.php';
+?>
+
+<!-- TABLERO DE PRODUCCIÓN ESCALABLE POR TIEMPO (FIFO) -->
+<?php
+$activities = $allActivities ?? [];
+require APP_PATH . '/Views/dashboard/partials/production_board.php';
 ?>

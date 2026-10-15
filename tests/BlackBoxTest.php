@@ -223,6 +223,11 @@ class BlackBoxTestSuite {
         // 3. Cache-busting en assets
         $this->assert(str_contains($dash['body'], 'style.css?v='), 'style.css incluye parametro de version dinámico (?v=...) para cache-busting');
         $this->assert(str_contains($dash['body'], 'app.js?v='), 'app.js incluye parametro de version dinámico (?v=...) para cache-busting');
+
+        // 4. Jerarquía visual: Calendario interactivo arriba y Tablero de producción debajo
+        $posCalendar = strpos($dash['body'], 'calGridDaysContainer');
+        $posBoard = strpos($dash['body'], 'Tablero de Producción (En Tiempo Real)');
+        $this->assert($posCalendar !== false && $posBoard !== false && $posCalendar < $posBoard, 'El Calendario interactivo se ubica arriba y el Tablero de producción debajo');
     }
 
     /**
