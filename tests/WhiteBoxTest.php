@@ -53,6 +53,7 @@ class WhiteBoxTestSuite {
         $this->testRealtorModelProjectsIsolation();
         $this->testIdleSessionSecurityAndActivityTracking();
         $this->testUtf8EncodingAndAccentsIntegrity();
+        $this->testEmailMarketingModelIntegrity();
 
         $elapsed = round(microtime(true) - $startTime, 4);
 
@@ -431,6 +432,28 @@ class WhiteBoxTestSuite {
             }
         }
         $this->assert($hasCorruptedMarks === false, 'Ningun registro en la base de datos contiene secuencias corruptas (??)');
+    }
+
+    /**
+     * 12. Modelo de Email Marketing y Cronograma
+     */
+    private function testEmailMarketingModelIntegrity(): void {
+        echo "\n--- 12. Modelo de Email Marketing y Cronograma ---\n";
+
+        $emailModel = new \App\Models\EmailMarketingModel();
+        $campaigns = $emailModel->getAll();
+        $this->assert(is_array($campaigns), 'EmailMarketingModel::getAll() retorna un arreglo');
+
+        if (!empty($campaigns)) {
+            $first = $campaigns[0];
+            $this->assert(array_key_exists('scheduled_date', $first), 'Campañas contienen campo scheduled_date');
+            $this->assert(array_key_exists('company_name', $first), 'Campañas unen relacion con realtors (company_name)');
+            $this->assert(array_key_exists('status', $first), 'Campañas contienen campo status');
+        }
+
+        $counts = $emailModel->getCounts();
+        $this->assert(isset($counts['total']) && isset($counts['programados']) && isset($counts['subidos']) && isset($counts['enviados']), 'getCounts() retorna métricas operativas completas');
+        $this->assert(!isset($counts['price']) && !isset($counts['revenue']), 'Email Marketing preserva estrictamente la regla de Cero Métricas Financieras');
     }
 }
 

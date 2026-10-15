@@ -48,6 +48,7 @@ class BlackBoxTestSuite {
         $this->testError404And500Sanitization();
         $this->testIdleSessionWarningModalAndKeepAliveApi();
         $this->testUtf8HeadersAndContentDelivery();
+        $this->testEmailMarketingModuleDesignAndCalendar();
 
         $elapsed = round(microtime(true) - $startTime, 4);
 
@@ -393,6 +394,44 @@ class BlackBoxTestSuite {
         $this->assert(mb_check_encoding($resDash['body'], 'UTF-8'), 'Cuerpo HTML de /dashboard es UTF-8 válido');
         $this->assert(!str_contains($resDash['body'], '??'), 'Cuerpo HTML no contiene caracteres dobles de interrogación corruptos (??)');
         $this->assert(str_contains($resDash['body'], 'Producción') || str_contains($resDash['body'], 'Reuniones') || str_contains($resDash['body'], 'Operaciones'), 'Vistas renderizan caracteres acentuados correctamente');
+    }
+
+    /**
+     * 11. Módulo de Email Marketing: Tarjetas Ejecutivas y Calendario Interactivo
+     */
+    private function testEmailMarketingModuleDesignAndCalendar(): void {
+        echo "\n--- 11. Módulo de Email Marketing: Tarjetas Ejecutivas y Calendario Interactivo ---\n";
+
+        // 1. Acceso no autenticado es protegido
+        $this->resetCookies();
+        $resUnauth = $this->request('/email-marketing', 'GET');
+        $this->assert($resUnauth['code'] === 302 && str_contains($resUnauth['headers'], 'Location: /login'), 'Acceso no autenticado a /email-marketing redirige a /login');
+
+        // 2. Acceso autenticado
+        $this->request('/login', 'POST', ['email' => 'jefe@miamiagency.com', 'password' => 'password123']);
+        $res = $this->request('/email-marketing', 'GET');
+        $this->assert($res['code'] === 200, 'GET /email-marketing autenticado responde HTTP 200');
+
+        // 3. Tarjetas KPI ejecutivas idénticas al Dashboard
+        $this->assert(str_contains($res['body'], 'exec-kpi-card kpi-navy'), 'Vista incluye tarjeta ejecutiva kpi-navy');
+        $this->assert(str_contains($res['body'], 'exec-kpi-card kpi-steel'), 'Vista incluye tarjeta ejecutiva kpi-steel');
+        $this->assert(str_contains($res['body'], 'exec-kpi-card kpi-bronze'), 'Vista incluye tarjeta ejecutiva kpi-bronze');
+        $this->assert(str_contains($res['body'], 'exec-kpi-card kpi-sage'), 'Vista incluye tarjeta ejecutiva kpi-sage');
+        $this->assert(str_contains($res['body'], 'exec-icon-box'), 'Tarjetas KPI incluyen contenedor de icono corporativo exec-icon-box');
+
+        // 4. Calendario interactivo de 2 columnas estilo Dashboard
+        $this->assert(str_contains($res['body'], 'emailCalGridDaysContainer'), 'Vista incluye contenedor de cuadrícula mensual interactiva');
+        $this->assert(str_contains($res['body'], 'emailCalListContainer'), 'Vista incluye contenedor de agenda dinámica de campañas');
+        $this->assert(str_contains($res['body'], 'calendar-grid'), 'Vista incluye clase CSS estándar calendar-grid');
+
+        // 5. Barra de filtros por Realtor y tabla completa
+        $this->assert(str_contains($res['body'], 'Filtrar Cronograma por Cliente Realtor'), 'Vista incluye barra de botones filtradores por Realtor');
+        $this->assert(str_contains($res['body'], 'Fechas Estipuladas de Email Marketing'), 'Vista incluye tabla de registro completo');
+        $this->assert(str_contains($res['body'], 'action="') && str_contains($res['body'], '/email-marketing/update-status"'), 'Vista incluye selector rápido de estado de campaña');
+
+        // 6. Modal con validaciones en tiempo real
+        $this->assert(str_contains($res['body'], 'id="modalNewEmailCampaign"'), 'Modal de programación de email presente');
+        $this->assert(str_contains($res['body'], 'data-purpose=') && str_contains($res['body'], 'data-error-msg='), 'Formulario de modal instrumentado con validaciones en tiempo real');
     }
 }
 
